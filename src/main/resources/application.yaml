@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: payment
+
+  # ===================================================
+  # Database
+  # ===================================================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      pool-name: PaymentHikariCP
+
+  # ===================================================
+  # Flyway
+  # ===================================================
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    locations: classpath:db/migration
+    clean-disabled: true
+
+  # ===================================================
+  # GraphQL
+  # ===================================================
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    schema:
+      locations: classpath:graphql/
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET, POST, OPTIONS
+
+  # ===================================================
+  # Jackson (JSON)
+  # ===================================================
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: UTC
+    serialization:
+      INDENT_OUTPUT: true
+
+# =====================================================
+# Server
+# =====================================================
+server:
+  port: 8080
+  error:
+    include:
+      message: always
+      binding-errors: always
+      stacktrace: always
+      exception: true
+  compression:
+    enabled: true
+    mime-types: application/json,application/graphql+json
+    min-response-size: 2048
+
+# =====================================================
+# Logging
+# =====================================================
+logging:
+  level:
+    com.safostudio: DEBUG
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+    org.flywaydb: INFO
+    org.springframework.graphql: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/payment.log
+  logback:
+    rollingpolicy:
+      max-history: 7
+      max-file-size: 10MB
+      total-size-cap: 100MB
+      clean-history-on-start: false
+      file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz"
+
+# =====================================================
+# Custom Payment Properties
+# =====================================================
+payment:
+  idempotency:
+    ttl: 24h
+  system:
+    topup-wallet-id: 00000000-0000-0000-0000-000000000001
+    fee-wallet-id: 00000000-0000-0000-0000-000000000002
+  transaction:
+    max-amount: 1000000

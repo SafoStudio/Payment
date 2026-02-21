@@ -1,0 +1,79 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Docker ###
+docker-compose.override.yml
+.docker-volumes/
+postgres_data/
+pgadmin-data/
+
+### Java ###
+*.log
+*.class
+*.jar
+*.war
+*.ear
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+### Spring Boot ###
+**/application-local.yml
+**/application-dev.yml
+**/application-*.properties
+!application.yml
+!application-prod.yml
+
+### Environment ###
+.env
+.env.*
+!.env.example
+**/secrets/
+**/credentials/
+
+### Logs ###
+logs/
+
+### pgAdmin ###
+*.pgpass
+servers.json
+!pgadmin-servers.json
+
+note.md
