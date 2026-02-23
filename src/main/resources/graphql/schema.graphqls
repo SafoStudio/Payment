@@ -1,0 +1,88 @@
+type Wallet {
+    id: ID!
+    ownerId: String!
+    balance: Float!
+    currency: String!
+    status: WalletStatus!
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum WalletStatus {
+    ACTIVE
+    BLOCKED
+    CLOSED
+}
+
+type Transaction {
+    id: ID!
+    debitWalletId: ID!
+    creditWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: TransactionType!
+    status: TransactionStatus!
+    description: String
+    referenceId: ID
+    createdAt: String!
+}
+
+enum TransactionType {
+    TRANSFER
+    TOP_UP
+    WITHDRAWAL
+    REFUND
+}
+
+enum TransactionStatus {
+    PENDING
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+input CreateWalletInput {
+    ownerId: String!
+    currency: String!
+    initialBalance: Float
+}
+
+input TransferInput {
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    description: String
+    idempotencyKey: String!
+}
+
+input TopUpInput {
+    walletId: ID!
+    amount: Float!
+    currency: String!
+    description: String
+    idempotencyKey: String!
+}
+
+type Query {
+    # Wallet queries
+    wallet(id: ID!): Wallet!
+    walletsByOwner(ownerId: String!): [Wallet!]!
+    wallets: [Wallet!]!
+
+    # Transaction queries
+    transaction(id: ID!): Transaction!
+    walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
+}
+
+type Mutation {
+    # Wallet mutations
+    createWallet(input: CreateWalletInput!): Wallet!
+    blockWallet(id: ID!): Wallet!
+    unblockWallet(id: ID!): Wallet!
+    closeWallet(id: ID!): Wallet!
+
+    # Transfer mutations
+    transfer(input: TransferInput!): Transaction!
+    topUp(input: TopUpInput!): Transaction!
+}
