@@ -1,3 +1,7 @@
+#TYPE
+
+# wallet types
+
 type Wallet {
     id: ID!
     ownerId: String!
@@ -41,6 +45,44 @@ enum TransactionStatus {
     CANCELLED
 }
 
+# payment types
+
+type Payment {
+    id: ID!
+    walletId: ID!
+    targetWalletId: ID!
+    amount: Float!
+    currency: String!
+    status: PaymentStatus!
+    type: PaymentType!
+    idempotencyKey: String
+    description: String
+    transactionId: ID
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum PaymentStatus {
+    PENDING
+    PROCESSING
+    SUCCEEDED
+    FAILED
+    REFUNDED
+    CANCELLED
+}
+
+enum PaymentType {
+    TRANSFER
+    TOP_UP
+    WITHDRAWAL
+    REFUND
+    PAYMENT
+}
+
+# INPUT
+
+# wallet inputs
+
 input CreateWalletInput {
     ownerId: String!
     currency: String!
@@ -64,6 +106,19 @@ input TopUpInput {
     idempotencyKey: String!
 }
 
+# payment inputs
+
+input CreatePaymentInput {
+    walletId: ID!
+    targetWalletId: ID!
+    amount: Float!
+    currency: String!
+    idempotencyKey: String!
+    description: String
+}
+
+# QUERY
+
 type Query {
     # Wallet queries
     wallet(id: ID!): Wallet!
@@ -73,7 +128,14 @@ type Query {
     # Transaction queries
     transaction(id: ID!): Transaction!
     walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
+
+    # Payment queries
+    payment(id: ID!): Payment!
+    paymentByIdempotencyKey(key: String!): Payment
+    paymentsByWallet(walletId: ID!): [Payment!]!
 }
+
+# MUTATION
 
 type Mutation {
     # Wallet mutations
@@ -85,4 +147,9 @@ type Mutation {
     # Transfer mutations
     transfer(input: TransferInput!): Transaction!
     topUp(input: TopUpInput!): Transaction!
+
+    # Payment mutations
+    createPayment(input: CreatePaymentInput!): Payment!
+    processPayment(id: ID!): Payment!
+    cancelPayment(id: ID!): Payment!
 }

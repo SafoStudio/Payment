@@ -17,6 +17,8 @@ import java.time.Instant;
 public class IdempotencyKey {
 
     @Id
+    private String id;
+
     private String idempotencyKey;
 
     private String response;

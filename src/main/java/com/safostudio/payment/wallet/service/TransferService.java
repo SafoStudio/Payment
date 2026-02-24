@@ -41,6 +41,7 @@ public class TransferService {
 
     @Transactional
     public TransactionResponse transfer(TransferRequest request) {
+
         if (idempotencyRepository.existsByIdempotencyKey(request.getIdempotencyKey())) {
             throw TransferServiceException.duplicateIdempotencyKey(request.getIdempotencyKey());
         }
@@ -172,6 +173,7 @@ public class TransferService {
     private void saveIdempotencyKey(String key, Transaction transaction) {
         try {
             IdempotencyKey idempotencyKey = IdempotencyKey.builder()
+                    .id(null)
                     .idempotencyKey(key)
                     .response(objectMapper.writeValueAsString(TransactionResponse.fromDomain(transaction)))
                     .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))

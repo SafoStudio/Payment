@@ -74,7 +74,9 @@ logging:
     org.springframework.jdbc.core.JdbcTemplate: DEBUG
     org.springframework.jdbc.core.StatementCreatorUtils: TRACE
     org.flywaydb: INFO
-    org.springframework.graphql: DEBUG
+    org.springframework.graphql:
+    org.springframework.transaction: DEBUG
+    org.springframework.orm.jpa: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

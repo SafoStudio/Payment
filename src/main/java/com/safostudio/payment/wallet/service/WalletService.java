@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.safostudio.payment.wallet.service.dto.TransferRequest;
+import com.safostudio.payment.wallet.service.dto.TransactionResponse;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,6 +25,7 @@ import java.util.stream.StreamSupport;
 public class WalletService {
 
     private final WalletRepository walletRepository;
+    private final TransferService transferService;
 
     @Transactional
     public WalletResponse createWallet(CreateWalletRequest request) {
@@ -123,6 +126,23 @@ public class WalletService {
         return StreamSupport.stream(walletRepository.findAll().spliterator(), false)
                 .map(WalletResponse::fromDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public TransactionResponse transferFunds(UUID fromWalletId, UUID toWalletId,
+                                             BigDecimal amount, String currency,
+                                             String idempotencyKey, String description) {
+
+        TransferRequest request = TransferRequest.builder()
+                .fromWalletId(fromWalletId)
+                .toWalletId(toWalletId)
+                .amount(amount)
+                .currency(currency)
+                .idempotencyKey(idempotencyKey)
+                .description(description)
+                .build();
+
+        return transferService.transfer(request);
     }
 
     private Wallet findWalletById(UUID walletId) {
