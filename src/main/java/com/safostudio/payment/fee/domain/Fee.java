@@ -53,7 +53,7 @@ public class Fee {
                                   UUID toWalletId, BigDecimal amount,
                                   String currency) {
         return Fee.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .transactionId(transactionId)
                 .fromWalletId(fromWalletId)
                 .toWalletId(toWalletId)
@@ -71,7 +71,7 @@ public class Fee {
                                        UUID toWalletId, BigDecimal percentage,
                                        BigDecimal calculatedAmount, String currency) {
         return Fee.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .transactionId(transactionId)
                 .fromWalletId(fromWalletId)
                 .toWalletId(toWalletId)

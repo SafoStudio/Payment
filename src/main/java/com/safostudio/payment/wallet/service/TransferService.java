@@ -1,6 +1,10 @@
 package com.safostudio.payment.wallet.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safostudio.payment.fee.domain.Fee;
+import com.safostudio.payment.fee.service.FeeCalculator;
+import com.safostudio.payment.fee.service.FeeService;
+import com.safostudio.payment.fee.service.dto.CalculateFeeRequest;
 import com.safostudio.payment.wallet.exception.TransferServiceException;
 import com.safostudio.payment.wallet.util.MoneyUtils;
 import com.safostudio.payment.wallet.domain.IdempotencyKey;
@@ -33,6 +37,8 @@ public class TransferService {
     private final TransactionRepository transactionRepository;
     private final IdempotencyRepository idempotencyRepository;
     private final ObjectMapper objectMapper;
+    private final FeeCalculator feeCalculator;
+    private final FeeService feeService;
 
     private static final UUID SYSTEM_REVENUE_WALLET =
             UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -75,6 +81,68 @@ public class TransferService {
 
             savedTransaction.complete();
             transactionRepository.save(savedTransaction);
+
+            // Calculate and save fees
+            try {
+                CalculateFeeRequest feeRequest = CalculateFeeRequest.builder()
+                        .transactionType("TRANSFER")
+                        .amount(request.getAmount())
+                        .currency(request.getCurrency())
+                        .fromWalletId(request.getFromWalletId())
+                        .toWalletId(request.getToWalletId())
+                        .build();
+
+                List<Fee> fees = feeCalculator.calculateFees(feeRequest);
+
+                for (Fee fee : fees) {
+                    // Создаем fee с transactionId
+                    Fee feeWithTransaction = Fee.builder()
+                            .transactionId(savedTransaction.getId())
+                            .fromWalletId(fee.getFromWalletId())
+                            .toWalletId(fee.getToWalletId())
+                            .amount(fee.getAmount())
+                            .currency(fee.getCurrency())
+                            .type(fee.getType())
+                            .percentage(fee.getPercentage())
+                            .calculationRule(fee.getCalculationRule())
+                            .createdAt(Instant.now())
+                            .build();
+
+                    feeService.saveFee(feeWithTransaction);
+
+                    // Списываем комиссию с кошелька отправителя
+                    if (fee.getFromWalletId() != null) {
+                        Wallet feeWallet = walletRepository.findById(fee.getFromWalletId())
+                                .orElseThrow(() -> TransferServiceException.walletNotFound(fee.getFromWalletId()));
+                        feeWallet.debit(fee.getAmount());
+                        walletRepository.save(feeWallet);
+                    }
+
+                    // Зачисляем комиссию на кошелек получателя (системный)
+                    if (fee.getToWalletId() != null) {
+                        Wallet feeToWallet = walletRepository.findById(fee.getToWalletId())
+                                .orElseThrow(() -> TransferServiceException.walletNotFound(fee.getToWalletId()));
+                        feeToWallet.credit(fee.getAmount());
+                        walletRepository.save(feeToWallet);
+                    }
+
+                    // Создаем транзакцию для комиссии
+                    if (fee.getFromWalletId() != null && fee.getToWalletId() != null) {
+                        Transaction feeTransaction = Transaction.createTransfer(
+                                fee.getFromWalletId(),
+                                fee.getToWalletId(),
+                                fee.getAmount(),
+                                fee.getCurrency(),
+                                "Fee for transaction: " + savedTransaction.getId()
+                        );
+                    feeTransaction.complete();
+                    transactionRepository.save(feeTransaction);
+                    }
+                }
+
+            } catch (Exception e) {
+                log.error("Failed to process fees for transaction: {}", savedTransaction.getId(), e);
+            }
 
             saveIdempotencyKey(request.getIdempotencyKey(), savedTransaction);
 

@@ -44,7 +44,7 @@ public class BalanceHistory {
                                         BigDecimal newBalance, UUID transactionId,
                                         String operationType, String currency) {
         return BalanceHistory.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .walletId(walletId)
                 .previousBalance(previousBalance)
                 .newBalance(newBalance)

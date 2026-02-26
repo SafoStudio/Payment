@@ -50,7 +50,7 @@ public class ExchangeRate {
         }
 
         return ExchangeRate.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .fromCurrency(fromCurrency)
                 .toCurrency(toCurrency)
                 .rate(rate)

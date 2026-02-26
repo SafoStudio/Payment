@@ -1,6 +1,6 @@
 #TYPE
 
-# wallet types
+# Wallet types
 
 type Wallet {
     id: ID!
@@ -45,7 +45,7 @@ enum TransactionStatus {
     CANCELLED
 }
 
-# payment types
+# Payment types
 
 type Payment {
     id: ID!
@@ -100,9 +100,48 @@ enum RefundStatus {
     REJECTED
 }
 
+# Fee types
+
+type Fee {
+    id: ID!
+    transactionId: ID
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: FeeType!
+    percentage: Float
+    calculationRule: String
+    createdAt: String!
+}
+
+enum FeeType {
+    FIXED
+    PERCENTAGE
+    MIXED
+    TIERED
+}
+
+type FeeRule {
+    id: ID!
+    name: String!
+    transactionType: String!
+    feeType: FeeType!
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
 # INPUT
 
-# wallet inputs
+# Wallet inputs
 
 input CreateWalletInput {
     ownerId: String!
@@ -127,7 +166,7 @@ input TopUpInput {
     idempotencyKey: String!
 }
 
-# payment inputs
+# Payment inputs
 
 input CreatePaymentInput {
     walletId: ID!
@@ -138,7 +177,7 @@ input CreatePaymentInput {
     description: String
 }
 
-# refund inputs
+# Refund inputs
 
 input CreateRefundInput {
     paymentId: ID!
@@ -146,6 +185,48 @@ input CreateRefundInput {
     currency: String!
     reason: String
     idempotencyKey: String!
+}
+
+# Fee inputs
+
+input FeeInput {
+    transactionId: ID
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: String!
+    percentage: Float
+    calculationRule: String
+}
+
+input CreateFeeRuleInput {
+    name: String!
+    transactionType: String!
+    feeType: FeeType!
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean
+}
+
+input UpdateFeeRuleInput {
+    id: ID!
+    name: String
+    transactionType: String
+    feeType: FeeType
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean
 }
 
 # QUERY
@@ -168,6 +249,13 @@ type Query {
     # Refund queries
     refund(id: ID!): Refund
     refundsByPayment(paymentId: ID!): [Refund!]!
+
+    # Fee queries
+    feesByTransaction(transactionId: ID!): [Fee!]!
+    feesByWallet(walletId: ID!): [Fee!]!
+    feeRules: [FeeRule!]!
+    feeRule(id: ID!): FeeRule
+    feeRulesByType(transactionType: String!): [FeeRule!]!
 }
 
 # MUTATION
@@ -191,4 +279,10 @@ type Mutation {
     # Refund mutations
     createRefund(input: CreateRefundInput!): Refund!
     processRefund(id: ID!): Refund!
+
+    # Fee mutation
+    createFee(input: FeeInput!): Fee!
+    createFeeRule(input: CreateFeeRuleInput!): FeeRule!
+    updateFeeRule(input: UpdateFeeRuleInput!): FeeRule!
+    deleteFeeRule(id: ID!): Boolean!
 }

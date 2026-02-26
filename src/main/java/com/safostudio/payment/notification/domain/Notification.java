@@ -66,7 +66,7 @@ public class Notification {
                                       NotificationType type,
                                       String title, String content) {
         return Notification.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .walletId(walletId)
                 .userId(userId)
                 .type(type)

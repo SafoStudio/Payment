@@ -48,7 +48,7 @@ public class AuditLog {
                                   String oldValue, String newValue,
                                   String ipAddress, String userAgent) {
         return AuditLog.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .entityType(entityType)
                 .entityId(entityId)
                 .action(action)
