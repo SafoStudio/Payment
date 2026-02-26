@@ -79,6 +79,27 @@ enum PaymentType {
     PAYMENT
 }
 
+type Refund {
+    id: ID!
+    paymentId: ID!
+    amount: Float!
+    currency: String!
+    status: RefundStatus!
+    reason: String
+    originalTransactionId: ID!
+    refundTransactionId: ID
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum RefundStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+    REJECTED
+}
+
 # INPUT
 
 # wallet inputs
@@ -117,6 +138,16 @@ input CreatePaymentInput {
     description: String
 }
 
+# refund inputs
+
+input CreateRefundInput {
+    paymentId: ID!
+    amount: Float!
+    currency: String!
+    reason: String
+    idempotencyKey: String!
+}
+
 # QUERY
 
 type Query {
@@ -133,6 +164,10 @@ type Query {
     payment(id: ID!): Payment!
     paymentByIdempotencyKey(key: String!): Payment
     paymentsByWallet(walletId: ID!): [Payment!]!
+
+    # Refund queries
+    refund(id: ID!): Refund
+    refundsByPayment(paymentId: ID!): [Refund!]!
 }
 
 # MUTATION
@@ -152,4 +187,8 @@ type Mutation {
     createPayment(input: CreatePaymentInput!): Payment!
     processPayment(id: ID!): Payment!
     cancelPayment(id: ID!): Payment!
+
+    # Refund mutations
+    createRefund(input: CreateRefundInput!): Refund!
+    processRefund(id: ID!): Refund!
 }

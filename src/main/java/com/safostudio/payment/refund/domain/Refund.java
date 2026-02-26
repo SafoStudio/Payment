@@ -56,10 +56,11 @@ public class Refund {
     public static Refund create(UUID paymentId, BigDecimal amount,
                                 String currency, String reason,
                                 UUID originalTransactionId) {
+
         validateAmount(amount);
 
         return Refund.builder()
-                .id(UUID.randomUUID())
+                .id(null)
                 .paymentId(paymentId)
                 .amount(amount)
                 .currency(currency)
