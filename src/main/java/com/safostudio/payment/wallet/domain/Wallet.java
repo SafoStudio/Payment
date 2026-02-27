@@ -23,7 +23,7 @@ public class Wallet {
     @Id
     private UUID id;
 
-    private String ownerId;
+    private UUID userId;
 
     private BigDecimal balance;
 

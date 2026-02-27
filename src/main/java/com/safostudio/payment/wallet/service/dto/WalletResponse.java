@@ -17,7 +17,7 @@ import java.util.UUID;
 public class WalletResponse {
 
     private UUID id;
-    private String ownerId;
+    private UUID userId;
     private BigDecimal balance;
     private String currency;
     private String status;
@@ -27,7 +27,7 @@ public class WalletResponse {
     public static WalletResponse fromDomain(Wallet wallet) {
         return WalletResponse.builder()
                 .id(wallet.getId())
-                .ownerId(wallet.getOwnerId())
+                .userId(wallet.getUserId())
                 .balance(wallet.getBalance())
                 .currency(wallet.getCurrency())
                 .status(wallet.getStatus().name())

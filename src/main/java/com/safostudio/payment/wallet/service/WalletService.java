@@ -1,5 +1,7 @@
 package com.safostudio.payment.wallet.service;
 
+import com.safostudio.payment.user.repository.UserRepository;
+import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.wallet.domain.Wallet;
 import com.safostudio.payment.wallet.exception.WalletServiceException;
 import com.safostudio.payment.wallet.repository.WalletRepository;
@@ -26,6 +28,7 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final TransferService transferService;
+    private final UserRepository userRepository;
 
     @Transactional
     public WalletResponse createWallet(CreateWalletRequest request) {
@@ -38,12 +41,20 @@ public class WalletService {
         if (request.getInitialBalance() != null && request.getInitialBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw WalletServiceException.invalidInitialBalance(request.getInitialBalance());
         }
-        if (walletRepository.existsByOwnerIdAndCurrency(request.getOwnerId(), request.getCurrency())) {
-            throw WalletServiceException.alreadyExists(request.getOwnerId(), request.getCurrency());
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> WalletServiceException.userNotFound(request.getUserId()));
+
+        if (!user.isActive()) {
+            throw WalletServiceException.userNotActive(request.getUserId(), user.getStatus());
+        }
+
+        if (walletRepository.existsByUserIdAndCurrency(request.getUserId(), request.getCurrency())) {
+            throw WalletServiceException.alreadyExists(request.getUserId(), request.getCurrency());
         }
 
         Wallet wallet = Wallet.builder()
-                .ownerId(request.getOwnerId())
+                .userId(request.getUserId())
                 .balance(request.getInitialBalance() != null ? request.getInitialBalance() : BigDecimal.ZERO)
                 .currency(request.getCurrency())
                 .status(Wallet.WalletStatus.ACTIVE)
@@ -52,6 +63,7 @@ public class WalletService {
                 .build();
 
         Wallet saved = walletRepository.save(wallet);
+
         return WalletResponse.fromDomain(saved);
     }
 
@@ -67,8 +79,12 @@ public class WalletService {
     }
 
     @Transactional(readOnly = true)
-    public List<WalletResponse> getWalletsByOwner(String ownerId) {
-        return walletRepository.findAllByOwnerId(ownerId).stream()
+    public List<WalletResponse> getWalletsByUserId(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw WalletServiceException.userNotFound(userId);
+        }
+
+        return walletRepository.findAllByUserId(userId).stream()
                 .map(WalletResponse::fromDomain)
                 .collect(Collectors.toList());
     }
@@ -77,6 +93,8 @@ public class WalletService {
     public WalletResponse blockWallet(UUID walletId) {
         Wallet wallet = findWalletById(walletId);
 
+        validateUserForWallet(wallet.getUserId());
+
         try {
             wallet.block();
         } catch (Exception e) {
@@ -84,21 +102,28 @@ public class WalletService {
         }
 
         Wallet saved = walletRepository.save(wallet);
+
         return WalletResponse.fromDomain(saved);
     }
 
     @Transactional
     public WalletResponse unblockWallet(UUID walletId) {
         Wallet wallet = findWalletById(walletId);
+
+        validateUserForWallet(wallet.getUserId());
+
         wallet.unblock();
 
         Wallet saved = walletRepository.save(wallet);
+
         return WalletResponse.fromDomain(saved);
     }
 
     @Transactional
     public WalletResponse closeWallet(UUID walletId) {
         Wallet wallet = findWalletById(walletId);
+
+        validateUserForWallet(wallet.getUserId());
 
         if (wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             throw WalletServiceException.cannotCloseWithBalance(
@@ -113,6 +138,7 @@ public class WalletService {
         }
 
         Wallet saved = walletRepository.save(wallet);
+
         return WalletResponse.fromDomain(saved);
     }
 
@@ -133,6 +159,12 @@ public class WalletService {
                                              BigDecimal amount, String currency,
                                              String idempotencyKey, String description) {
 
+        Wallet fromWallet = findWalletById(fromWalletId);
+        Wallet toWallet = findWalletById(toWalletId);
+
+        validateUserForWallet(fromWallet.getUserId());
+        validateUserForWallet(toWallet.getUserId());
+
         TransferRequest request = TransferRequest.builder()
                 .fromWalletId(fromWalletId)
                 .toWalletId(toWalletId)
@@ -145,8 +177,28 @@ public class WalletService {
         return transferService.transfer(request);
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalBalanceByUserId(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw WalletServiceException.userNotFound(userId);
+        }
+
+        return walletRepository.getTotalBalanceByUserId(userId);
+    }
+
     private Wallet findWalletById(UUID walletId) {
         return walletRepository.findById(walletId)
                 .orElseThrow(() -> WalletServiceException.notFound(walletId));
+    }
+
+    private void validateUserForWallet(UUID userId) {
+        if (userId == null) return;
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> WalletServiceException.userNotFound(userId));
+
+        if (!user.isActive()) {
+            throw WalletServiceException.userNotActive(userId, user.getStatus());
+        }
     }
 }

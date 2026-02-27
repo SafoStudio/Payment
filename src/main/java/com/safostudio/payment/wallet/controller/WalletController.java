@@ -26,8 +26,8 @@ public class WalletController {
     }
 
     @QueryMapping
-    public List<WalletResponse> walletsByOwner(@Argument String ownerId) {
-        return walletService.getWalletsByOwner(ownerId);
+    public List<WalletResponse> walletsByUserId(@Argument UUID userId) {
+        return walletService.getWalletsByUserId(userId);
     }
 
     @QueryMapping

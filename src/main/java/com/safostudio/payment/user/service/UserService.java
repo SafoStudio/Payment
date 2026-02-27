@@ -144,7 +144,7 @@ public class UserService {
     public UserResponse deleteUser(UUID userId) {
         User user = findUserById(userId);
 
-        boolean hasWallets = walletRepository.existsByOwnerId(userId.toString());
+        boolean hasWallets = walletRepository.existsByUserId(userId);
         if (hasWallets) {
             throw UserServiceException.cannotDeleteWithWallets(userId);
         }

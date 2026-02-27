@@ -13,9 +13,9 @@ public class WalletServiceException extends RuntimeException {
         return new WalletServiceException("Wallet not found with id: %s".formatted(walletId));
     }
 
-    public static WalletServiceException alreadyExists(String ownerId, String currency) {
+    public static WalletServiceException alreadyExists(UUID userId, String currency) {
         return new WalletServiceException(
-                "Wallet with currency %s already exists for owner: %s".formatted(currency, ownerId)
+                "Wallet with currency %s already exists for owner: %s".formatted(currency, userId)
         );
     }
 
@@ -47,5 +47,13 @@ public class WalletServiceException extends RuntimeException {
         return new WalletServiceException(
                 "Cannot close wallet %s with non-zero balance: %s %s".formatted(walletId, balance, currency)
         );
+    }
+
+    public static WalletServiceException userNotFound(UUID userId) {
+        return new WalletServiceException("User not found: %s".formatted(userId));
+    }
+
+    public static WalletServiceException userNotActive(UUID userId, Object status) {
+        return new WalletServiceException("User %s is not active. Current status: %s".formatted(userId, status));
     }
 }
