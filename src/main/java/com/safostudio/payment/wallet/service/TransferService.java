@@ -95,7 +95,6 @@ public class TransferService {
                 List<Fee> fees = feeCalculator.calculateFees(feeRequest);
 
                 for (Fee fee : fees) {
-                    // Создаем fee с transactionId
                     Fee feeWithTransaction = Fee.builder()
                             .transactionId(savedTransaction.getId())
                             .fromWalletId(fee.getFromWalletId())
@@ -110,7 +109,6 @@ public class TransferService {
 
                     feeService.saveFee(feeWithTransaction);
 
-                    // Списываем комиссию с кошелька отправителя
                     if (fee.getFromWalletId() != null) {
                         Wallet feeWallet = walletRepository.findById(fee.getFromWalletId())
                                 .orElseThrow(() -> TransferServiceException.walletNotFound(fee.getFromWalletId()));
@@ -118,7 +116,6 @@ public class TransferService {
                         walletRepository.save(feeWallet);
                     }
 
-                    // Зачисляем комиссию на кошелек получателя (системный)
                     if (fee.getToWalletId() != null) {
                         Wallet feeToWallet = walletRepository.findById(fee.getToWalletId())
                                 .orElseThrow(() -> TransferServiceException.walletNotFound(fee.getToWalletId()));
@@ -126,7 +123,6 @@ public class TransferService {
                         walletRepository.save(feeToWallet);
                     }
 
-                    // Создаем транзакцию для комиссии
                     if (fee.getFromWalletId() != null && fee.getToWalletId() != null) {
                         Transaction feeTransaction = Transaction.createTransfer(
                                 fee.getFromWalletId(),

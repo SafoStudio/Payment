@@ -29,7 +29,6 @@ public class FeeService {
         List<Fee> fees = feeCalculator.calculateFees(request);
 
         fees.forEach(fee -> {
-            // Создаем новый Fee с transactionId
             Fee feeWithTransaction = Fee.builder()
                     .id(fee.getId())
                     .transactionId(transactionId)

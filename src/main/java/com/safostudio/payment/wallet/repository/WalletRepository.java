@@ -21,6 +21,8 @@ public interface WalletRepository extends CrudRepository<Wallet, UUID> {
 
     List<Wallet> findAllByStatus(Wallet.WalletStatus status);
 
+    boolean existsByOwnerId(String ownerId);
+
     boolean existsByOwnerIdAndCurrency(String ownerId, String currency);
 
     @Query("SELECT * FROM wallets WHERE owner_id = :ownerId AND status = 'ACTIVE'")
