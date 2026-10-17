@@ -76,8 +76,6 @@ public class FeeRuleService {
         if (input.toWalletId() != null) builder.toWalletId(input.toWalletId());
         if (input.isActive() != null) builder.isActive(input.isActive());
 
-        builder.updatedAt(Instant.now());
-
         FeeRule updated = builder.build();
         return feeRuleRepository.save(updated);
     }

@@ -85,7 +85,6 @@ public class Notification {
     public void markAsSent() {
         this.status = NotificationStatus.SENT;
         this.sentAt = Instant.now();
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -93,7 +92,6 @@ public class Notification {
      */
     public void markAsFailed() {
         this.status = NotificationStatus.FAILED;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -101,7 +99,6 @@ public class Notification {
      */
     public void incrementRetry() {
         this.retryCount++;
-        this.updatedAt = Instant.now();
     }
 
     public boolean shouldRetry(int maxRetries) {

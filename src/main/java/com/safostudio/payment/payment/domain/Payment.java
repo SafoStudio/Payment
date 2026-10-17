@@ -77,7 +77,6 @@ public class Payment {
             throw PaymentException.invalidStatus("process", status);
         }
         this.status = PaymentStatus.PROCESSING;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -89,7 +88,6 @@ public class Payment {
         }
         this.status = PaymentStatus.SUCCEEDED;
         this.transactionId = transactionId;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -100,7 +98,6 @@ public class Payment {
             throw PaymentException.alreadySucceeded();
         }
         this.status = PaymentStatus.FAILED;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -111,7 +108,6 @@ public class Payment {
             throw PaymentException.cannotRefund(status);
         }
         this.status = PaymentStatus.REFUNDED;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -122,7 +118,6 @@ public class Payment {
             throw PaymentException.cannotCancel(status);
         }
         this.status = PaymentStatus.CANCELLED;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -144,10 +139,9 @@ public class Payment {
     }
 
     private static void validateWallets(UUID walletId, UUID targetWalletId, PaymentType type) {
-        if (type == PaymentType.TRANSFER || type == PaymentType.PAYMENT) {
-            if (walletId.equals(targetWalletId)) {
+        if ((type == PaymentType.TRANSFER || type == PaymentType.PAYMENT) && walletId.equals(targetWalletId)) {
                 throw PaymentException.sameWallet();
             }
-        }
+
     }
 }

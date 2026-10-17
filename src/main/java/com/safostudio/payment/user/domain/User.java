@@ -65,20 +65,17 @@ public class User {
     public void block() {
         if (this.status == UserStatus.ACTIVE) {
             this.status = UserStatus.BLOCKED;
-            this.updatedAt = Instant.now();
         }
     }
 
     public void activate() {
         if (this.status == UserStatus.BLOCKED) {
             this.status = UserStatus.ACTIVE;
-            this.updatedAt = Instant.now();
         }
     }
 
     public void delete() {
         this.status = UserStatus.DELETED;
-        this.updatedAt = Instant.now();
     }
 
     public boolean isActive() {
@@ -95,17 +92,14 @@ public class User {
 
     public void updateEmail(String email) {
         this.email = email;
-        this.updatedAt = Instant.now();
     }
 
     public void updatePhone(String phone) {
         this.phone = phone;
-        this.updatedAt = Instant.now();
     }
 
     public void updateName(String firstName, String lastName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.updatedAt = Instant.now();
     }
 }

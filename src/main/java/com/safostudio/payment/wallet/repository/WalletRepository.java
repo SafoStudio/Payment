@@ -33,7 +33,7 @@ public interface WalletRepository extends CrudRepository<Wallet, UUID> {
     List<Wallet> findActiveWalletsByUserId(@Param("userId") UUID userId);
 
     @Modifying
-    @Query("UPDATE wallets SET balance = :balance, version = version + 1, updated_at = NOW() " +
+    @Query("UPDATE wallets SET balance = :balance, version = version + 1 " +
             "WHERE id = :walletId AND version = :version")
     boolean optimisticLockUpdate(@Param("walletId") UUID walletId,
                                  @Param("balance") BigDecimal balance,

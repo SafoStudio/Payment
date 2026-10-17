@@ -54,7 +54,6 @@ public class Wallet {
             throw WalletException.insufficient(balance, amount, currency);
         }
         this.balance = balance.subtract(amount);
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -65,7 +64,6 @@ public class Wallet {
             throw WalletException.closed();
         }
         this.balance = balance.add(amount);
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -90,7 +88,6 @@ public class Wallet {
     public void block() {
         if (status == WalletStatus.ACTIVE) {
             this.status = WalletStatus.BLOCKED;
-            this.updatedAt = Instant.now();
         }
     }
 
@@ -100,7 +97,6 @@ public class Wallet {
     public void unblock() {
         if (status == WalletStatus.BLOCKED) {
             this.status = WalletStatus.ACTIVE;
-            this.updatedAt = Instant.now();
         }
     }
 
@@ -112,6 +108,5 @@ public class Wallet {
             throw WalletException.nonZeroBalance(balance, currency);
         }
         this.status = WalletStatus.CLOSED;
-        this.updatedAt = Instant.now();
     }
 }

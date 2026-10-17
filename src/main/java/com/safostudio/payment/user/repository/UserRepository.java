@@ -33,7 +33,7 @@ public interface UserRepository extends CrudRepository<User, UUID> {
     List<User> search(@Param("email") String email, @Param("name") String name);
 
     @Modifying
-    @Query("UPDATE users SET status = :status, updated_at = NOW() WHERE id = :userId")
+    @Query("UPDATE users SET status = :status WHERE id = :userId")
     boolean updateStatus(@Param("userId") UUID userId, @Param("status") User.UserStatus status);
 
     @Query("SELECT COUNT(*) > 0 FROM users WHERE id = :userId AND status = 'ACTIVE'")

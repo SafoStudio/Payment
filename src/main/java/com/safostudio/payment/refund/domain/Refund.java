@@ -80,7 +80,6 @@ public class Refund {
             throw RefundException.invalidStatus("process", status);
         }
         this.status = RefundStatus.PROCESSING;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -92,7 +91,6 @@ public class Refund {
         }
         this.status = RefundStatus.COMPLETED;
         this.refundTransactionId = refundTransactionId;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -103,7 +101,6 @@ public class Refund {
             throw RefundException.alreadyCompleted();
         }
         this.status = RefundStatus.FAILED;
-        this.updatedAt = Instant.now();
     }
 
     /**
@@ -114,7 +111,6 @@ public class Refund {
             throw RefundException.cannotReject(status);
         }
         this.status = RefundStatus.REJECTED;
-        this.updatedAt = Instant.now();
     }
 
     private static void validateAmount(BigDecimal amount) {
