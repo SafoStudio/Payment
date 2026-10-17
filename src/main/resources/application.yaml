@@ -3,6 +3,12 @@ spring:
     name: payment
 
   # ===================================================
+  # Config import (loads .env as properties for local dev)
+  # ===================================================
+  config:
+    import: optional:file:.env[.properties]
+
+  # ===================================================
   # Database
   # ===================================================
   datasource:
@@ -76,7 +82,6 @@ logging:
     org.flywaydb: INFO
     org.springframework.graphql: DEBUG
     org.springframework.transaction: DEBUG
-    org.springframework.orm.jpa: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
