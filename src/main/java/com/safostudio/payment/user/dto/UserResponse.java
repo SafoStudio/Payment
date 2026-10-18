@@ -1,6 +1,8 @@
 package com.safostudio.payment.user.dto;
 
 import com.safostudio.payment.user.domain.User;
+import com.safostudio.payment.user.domain.UserRole;
+import com.safostudio.payment.user.domain.UserStatus;
 import lombok.Builder;
 import lombok.Value;
 
@@ -16,8 +18,8 @@ public class UserResponse {
   String firstName;
   String lastName;
   String fullName;
-  User.UserRole role;
-  User.UserStatus status;
+  UserRole role;
+  UserStatus status;
   Instant createdAt;
   Instant updatedAt;
 

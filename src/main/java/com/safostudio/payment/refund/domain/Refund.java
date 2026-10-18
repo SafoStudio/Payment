@@ -42,14 +42,6 @@ public class Refund {
 
   private Instant updatedAt;
 
-  public enum RefundStatus {
-    PENDING,
-    PROCESSING,
-    COMPLETED,
-    FAILED,
-    REJECTED
-  }
-
   public static Refund create(UUID paymentId, BigDecimal amount,
                               String currency, String reason,
                               UUID originalTransactionId) {

@@ -40,20 +40,6 @@ public class Transaction {
 
   private Instant createdAt;
 
-  public enum TransactionType {
-    TRANSFER,
-    TOP_UP,
-    WITHDRAWAL,
-    REFUND
-  }
-
-  public enum TransactionStatus {
-    PENDING,
-    COMPLETED,
-    FAILED,
-    CANCELLED
-  }
-
   public static Transaction createTransfer(UUID fromWallet, UUID toWallet,
                                            BigDecimal amount, String currency,
                                            String description) {

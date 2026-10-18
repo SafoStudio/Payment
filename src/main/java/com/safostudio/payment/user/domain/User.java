@@ -17,89 +17,76 @@ import java.util.UUID;
 @Table("users")
 public class User {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private String email;
+  private String email;
 
-    private String phone;
+  private String phone;
 
-    private String firstName;
+  private String firstName;
 
-    private String lastName;
+  private String lastName;
 
-    private UserRole role;
+  private UserRole role;
 
-    private UserStatus status;
+  private UserStatus status;
 
-    private Instant createdAt;
+  private Instant createdAt;
 
-    private Instant updatedAt;
+  private Instant updatedAt;
 
-    public enum UserRole {
-        USER,
-        ADMIN,
-        MERCHANT,
-        SUPPORT
+  public static User create(String email, String firstName, String lastName, UserRole role) {
+    return User.builder()
+            .id(null)
+            .email(email)
+            .firstName(firstName)
+            .lastName(lastName)
+            .role(role != null ? role : UserRole.USER)
+            .status(UserStatus.ACTIVE)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+  }
+
+  public void block() {
+    if (this.status == UserStatus.ACTIVE) {
+      this.status = UserStatus.BLOCKED;
     }
+  }
 
-    public enum UserStatus {
-        ACTIVE,
-        BLOCKED,
-        DELETED
+  public void activate() {
+    if (this.status == UserStatus.BLOCKED) {
+      this.status = UserStatus.ACTIVE;
     }
+  }
 
-    public static User create(String email, String firstName, String lastName, UserRole role) {
-        return User.builder()
-                .id(null)
-                .email(email)
-                .firstName(firstName)
-                .lastName(lastName)
-                .role(role != null ? role : UserRole.USER)
-                .status(UserStatus.ACTIVE)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-    }
+  public void delete() {
+    this.status = UserStatus.DELETED;
+  }
 
-    public void block() {
-        if (this.status == UserStatus.ACTIVE) {
-            this.status = UserStatus.BLOCKED;
-        }
-    }
+  public boolean isActive() {
+    return status == UserStatus.ACTIVE;
+  }
 
-    public void activate() {
-        if (this.status == UserStatus.BLOCKED) {
-            this.status = UserStatus.ACTIVE;
-        }
-    }
+  public boolean isBlocked() {
+    return status == UserStatus.BLOCKED;
+  }
 
-    public void delete() {
-        this.status = UserStatus.DELETED;
-    }
+  public boolean isDeleted() {
+    return status == UserStatus.DELETED;
+  }
 
-    public boolean isActive() {
-        return status == UserStatus.ACTIVE;
-    }
+  public void updateEmail(String email) {
+    this.email = email;
+  }
 
-    public boolean isBlocked() {
-        return status == UserStatus.BLOCKED;
-    }
+  public void updatePhone(String phone) {
+    this.phone = phone;
+  }
 
-    public boolean isDeleted() {
-        return status == UserStatus.DELETED;
-    }
-
-    public void updateEmail(String email) {
-        this.email = email;
-    }
-
-    public void updatePhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void updateName(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
+  public void updateName(String firstName, String lastName) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
 }

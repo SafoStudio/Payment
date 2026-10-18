@@ -3,6 +3,7 @@ package com.safostudio.payment.fee.service;
 import com.safostudio.payment.fee.api.input.CreateFeeRuleInput;
 import com.safostudio.payment.fee.api.input.UpdateFeeRuleInput;
 import com.safostudio.payment.fee.domain.FeeRule;
+import com.safostudio.payment.fee.domain.FeeType;
 import com.safostudio.payment.fee.repository.FeeRuleRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -90,9 +91,9 @@ public class FeeRuleService {
     return false;
   }
 
-  private FeeRule.FeeType parseFeeType(String feeType) {
+  private FeeType parseFeeType(String feeType) {
     try {
-      return FeeRule.FeeType.valueOf(feeType);
+      return FeeType.valueOf(feeType);
     } catch (IllegalArgumentException e) {
       throw BusinessException.validationError("Invalid fee type: " + feeType);
     }

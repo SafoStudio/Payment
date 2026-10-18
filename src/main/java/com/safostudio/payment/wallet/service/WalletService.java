@@ -5,6 +5,7 @@ import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.user.repository.UserRepository;
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.wallet.domain.Wallet;
+import com.safostudio.payment.wallet.domain.WalletStatus;
 import com.safostudio.payment.wallet.repository.WalletRepository;
 import com.safostudio.payment.wallet.dto.CreateWalletRequest;
 import com.safostudio.payment.wallet.dto.WalletResponse;
@@ -54,7 +55,7 @@ public class WalletService {
             .userId(request.getUserId())
             .balance(request.getInitialBalance() != null ? request.getInitialBalance() : BigDecimal.ZERO)
             .currency(request.getCurrency())
-            .status(Wallet.WalletStatus.ACTIVE)
+            .status(WalletStatus.ACTIVE)
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();

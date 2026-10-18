@@ -37,9 +37,4 @@ public class IdempotencyKey {
   public boolean isExpired() {
     return Instant.now().isAfter(expiresAt);
   }
-
-  public enum IdempotencyStatus {
-    PROCESSING,
-    SUCCEEDED
-  }
 }

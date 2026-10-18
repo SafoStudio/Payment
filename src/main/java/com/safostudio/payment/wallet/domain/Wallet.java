@@ -39,12 +39,6 @@ public class Wallet {
 
   private Instant updatedAt;
 
-  public enum WalletStatus {
-    ACTIVE,
-    BLOCKED,
-    CLOSED
-  }
-
   public void debit(BigDecimal amount) {
     MoneyUtils.validateAmount(amount);
     validateForTransfer();

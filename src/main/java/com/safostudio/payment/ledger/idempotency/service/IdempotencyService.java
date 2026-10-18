@@ -2,6 +2,7 @@ package com.safostudio.payment.ledger.idempotency.service;
 
 import tools.jackson.databind.json.JsonMapper;
 import com.safostudio.payment.ledger.idempotency.domain.IdempotencyKey;
+import com.safostudio.payment.ledger.idempotency.domain.IdempotencyStatus;
 import com.safostudio.payment.ledger.idempotency.repository.IdempotencyRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class IdempotencyService {
       return new Result(Outcome.MISMATCH, null);
     }
 
-    if (existing.getStatus() == IdempotencyKey.IdempotencyStatus.PROCESSING) {
+    if (existing.getStatus() == IdempotencyStatus.PROCESSING) {
       return new Result(Outcome.IN_PROGRESS, null);
     }
 

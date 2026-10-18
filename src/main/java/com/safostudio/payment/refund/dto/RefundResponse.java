@@ -1,7 +1,7 @@
 package com.safostudio.payment.refund.dto;
 
 import com.safostudio.payment.refund.domain.Refund;
-import com.safostudio.payment.refund.domain.Refund.RefundStatus;
+import com.safostudio.payment.refund.domain.RefundStatus;
 import lombok.Builder;
 import lombok.Value;
 

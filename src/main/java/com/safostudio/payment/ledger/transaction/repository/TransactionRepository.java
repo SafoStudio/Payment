@@ -1,6 +1,7 @@
 package com.safostudio.payment.ledger.transaction.repository;
 
 import com.safostudio.payment.ledger.transaction.domain.Transaction;
+import com.safostudio.payment.ledger.transaction.domain.TransactionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -18,33 +19,33 @@ import java.util.UUID;
 public interface TransactionRepository extends CrudRepository<Transaction, UUID>,
         PagingAndSortingRepository<Transaction, UUID> {
 
-    List<Transaction> findAllByDebitWalletIdOrCreditWalletIdOrderByCreatedAtDesc(
-            UUID debitWalletId, UUID creditWalletId);
+  List<Transaction> findAllByDebitWalletIdOrCreditWalletIdOrderByCreatedAtDesc(
+          UUID debitWalletId, UUID creditWalletId);
 
-    Page<Transaction> findAllByDebitWalletIdOrCreditWalletId(
-            UUID debitWalletId, UUID creditWalletId, Pageable pageable);
+  Page<Transaction> findAllByDebitWalletIdOrCreditWalletId(
+          UUID debitWalletId, UUID creditWalletId, Pageable pageable);
 
-    @Query("SELECT * FROM transactions WHERE debit_wallet_id = :walletId OR credit_wallet_id = :walletId " +
-            "ORDER BY created_at DESC LIMIT :limit")
-    List<Transaction> findRecentTransactions(@Param("walletId") UUID walletId,
-                                             @Param("limit") int limit);
+  @Query("SELECT * FROM transactions WHERE debit_wallet_id = :walletId OR credit_wallet_id = :walletId " +
+          "ORDER BY created_at DESC LIMIT :limit")
+  List<Transaction> findRecentTransactions(@Param("walletId") UUID walletId,
+                                           @Param("limit") int limit);
 
-    List<Transaction> findAllByReferenceId(UUID referenceId);
+  List<Transaction> findAllByReferenceId(UUID referenceId);
 
-    List<Transaction> findAllByStatusAndCreatedAtBefore(
-            Transaction.TransactionStatus status, Instant createdAt);
+  List<Transaction> findAllByStatusAndCreatedAtBefore(
+          TransactionStatus status, Instant createdAt);
 
-    @Query("SELECT COUNT(*) > 0 FROM transactions t " +
-            "WHERE (t.debit_wallet_id = :walletId OR t.credit_wallet_id = :walletId) " +
-            "AND t.created_at >= :since")
-    boolean hasTransactionsSince(@Param("walletId") UUID walletId,
-                                 @Param("since") Instant since);
+  @Query("SELECT COUNT(*) > 0 FROM transactions t " +
+          "WHERE (t.debit_wallet_id = :walletId OR t.credit_wallet_id = :walletId) " +
+          "AND t.created_at >= :since")
+  boolean hasTransactionsSince(@Param("walletId") UUID walletId,
+                               @Param("since") Instant since);
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions " +
-            "WHERE credit_wallet_id = :walletId AND status = 'COMPLETED'")
-    BigDecimal getTotalCredited(@Param("walletId") UUID walletId);
+  @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions " +
+          "WHERE credit_wallet_id = :walletId AND status = 'COMPLETED'")
+  BigDecimal getTotalCredited(@Param("walletId") UUID walletId);
 
-    @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions " +
-            "WHERE debit_wallet_id = :walletId AND status = 'COMPLETED'")
-    BigDecimal getTotalDebited(@Param("walletId") UUID walletId);
+  @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions " +
+          "WHERE debit_wallet_id = :walletId AND status = 'COMPLETED'")
+  BigDecimal getTotalDebited(@Param("walletId") UUID walletId);
 }

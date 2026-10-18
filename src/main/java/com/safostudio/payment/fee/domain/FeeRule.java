@@ -49,13 +49,6 @@ public class FeeRule {
 
   private Instant updatedAt;
 
-  public enum FeeType {
-    FIXED,
-    PERCENTAGE,
-    MIXED,
-    TIERED
-  }
-
   public BigDecimal calculate(BigDecimal transactionAmount) {
     if (transactionAmount == null || transactionAmount.compareTo(BigDecimal.ZERO) <= 0) {
       return BigDecimal.ZERO;

@@ -1,7 +1,7 @@
 package com.safostudio.payment.fee.dto;
 
 import com.safostudio.payment.fee.domain.Fee;
-import com.safostudio.payment.fee.domain.Fee.FeeType;
+import com.safostudio.payment.fee.domain.FeeType;
 import lombok.Builder;
 import lombok.Value;
 

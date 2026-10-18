@@ -41,13 +41,6 @@ public class Fee {
 
   private Instant createdAt;
 
-  public enum FeeType {
-    FIXED,
-    PERCENTAGE,
-    MIXED,
-    TIERED
-  }
-
   public static Fee createFixed(UUID transactionId, UUID fromWalletId,
                                 UUID toWalletId, BigDecimal amount,
                                 String currency) {
