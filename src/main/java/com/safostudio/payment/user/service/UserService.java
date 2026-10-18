@@ -1,11 +1,11 @@
 package com.safostudio.payment.user.service;
 
+import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.user.domain.User;
-import com.safostudio.payment.user.exception.UserServiceException;
 import com.safostudio.payment.user.repository.UserRepository;
-import com.safostudio.payment.user.service.dto.CreateUserRequest;
-import com.safostudio.payment.user.service.dto.UpdateUserRequest;
-import com.safostudio.payment.user.service.dto.UserResponse;
+import com.safostudio.payment.user.dto.CreateUserRequest;
+import com.safostudio.payment.user.dto.UpdateUserRequest;
+import com.safostudio.payment.user.dto.UserResponse;
 import com.safostudio.payment.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,144 +22,144 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final WalletRepository walletRepository;
+  private final UserRepository userRepository;
+  private final WalletRepository walletRepository;
 
-    @Transactional
-    public UserResponse createUser(CreateUserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw UserServiceException.emailAlreadyExists(request.getEmail());
-        }
-
-        if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
-            throw UserServiceException.phoneAlreadyExists(request.getPhone());
-        }
-
-        User user = User.create(
-                request.getEmail(),
-                request.getFirstName(),
-                request.getLastName(),
-                request.getRole()
-        );
-
-        if (request.getPhone() != null) {
-            user.updatePhone(request.getPhone());
-        }
-
-        User saved = userRepository.save(user);
-
-        return UserResponse.fromDomain(saved);
+  @Transactional
+  public UserResponse createUser(CreateUserRequest request) {
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw BusinessException.userAlreadyExists("email", request.getEmail());
     }
 
-    @Transactional(readOnly = true)
-    public UserResponse getUser(UUID userId) {
-        User user = findUserById(userId);
-        return UserResponse.fromDomain(user);
+    if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
+      throw BusinessException.userAlreadyExists("phone", request.getPhone());
     }
 
-    @Transactional(readOnly = true)
-    public User getUserEntity(UUID userId) {
-        return findUserById(userId);
+    User user = User.create(
+            request.getEmail(),
+            request.getFirstName(),
+            request.getLastName(),
+            request.getRole()
+    );
+
+    if (request.getPhone() != null) {
+      user.updatePhone(request.getPhone());
     }
 
-    @Transactional(readOnly = true)
-    public UserResponse getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> UserServiceException.notFoundByEmail(email));
-        return UserResponse.fromDomain(user);
+    User saved = userRepository.save(user);
+
+    return UserResponse.fromDomain(saved);
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse getUser(UUID userId) {
+    User user = findUserById(userId);
+    return UserResponse.fromDomain(user);
+  }
+
+  @Transactional(readOnly = true)
+  public User getUserEntity(UUID userId) {
+    return findUserById(userId);
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse getUserByEmail(String email) {
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> BusinessException.userNotFoundByEmail(email));
+    return UserResponse.fromDomain(user);
+  }
+
+  @Transactional(readOnly = true)
+  public List<UserResponse> getAllUsers() {
+    return StreamSupport.stream(userRepository.findAll().spliterator(), false)
+            .map(UserResponse::fromDomain)
+            .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
+  public List<UserResponse> getActiveUsers() {
+    return userRepository.findAllActive().stream()
+            .map(UserResponse::fromDomain)
+            .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
+    User user = findUserById(userId);
+
+    if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+      if (userRepository.existsByEmail(request.getEmail())) {
+        throw BusinessException.userAlreadyExists("email", request.getEmail());
+      }
+      user.updateEmail(request.getEmail());
     }
 
-    @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
-        return StreamSupport.stream(userRepository.findAll().spliterator(), false)
-                .map(UserResponse::fromDomain)
-                .collect(Collectors.toList());
+    if (request.getPhone() != null && !request.getPhone().equals(user.getPhone())) {
+      if (userRepository.existsByPhone(request.getPhone())) {
+        throw BusinessException.userAlreadyExists("phone", request.getPhone());
+      }
+      user.updatePhone(request.getPhone());
     }
 
-    @Transactional(readOnly = true)
-    public List<UserResponse> getActiveUsers() {
-        return userRepository.findAllActive().stream()
-                .map(UserResponse::fromDomain)
-                .collect(Collectors.toList());
+    if (request.getFirstName() != null || request.getLastName() != null) {
+      String firstName = request.getFirstName() != null ? request.getFirstName() : user.getFirstName();
+      String lastName = request.getLastName() != null ? request.getLastName() : user.getLastName();
+      user.updateName(firstName, lastName);
     }
 
-    @Transactional
-    public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
-        User user = findUserById(userId);
+    User saved = userRepository.save(user);
 
-        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw UserServiceException.emailAlreadyExists(request.getEmail());
-            }
-            user.updateEmail(request.getEmail());
-        }
+    return UserResponse.fromDomain(saved);
+  }
 
-        if (request.getPhone() != null && !request.getPhone().equals(user.getPhone())) {
-            if (userRepository.existsByPhone(request.getPhone())) {
-                throw UserServiceException.phoneAlreadyExists(request.getPhone());
-            }
-            user.updatePhone(request.getPhone());
-        }
+  @Transactional
+  public UserResponse blockUser(UUID userId) {
+    User user = findUserById(userId);
 
-        if (request.getFirstName() != null || request.getLastName() != null) {
-            String firstName = request.getFirstName() != null ? request.getFirstName() : user.getFirstName();
-            String lastName = request.getLastName() != null ? request.getLastName() : user.getLastName();
-            user.updateName(firstName, lastName);
-        }
-
-        User saved = userRepository.save(user);
-
-        return UserResponse.fromDomain(saved);
+    if (user.isDeleted()) {
+      throw BusinessException.userDeleted(userId);
     }
 
-    @Transactional
-    public UserResponse blockUser(UUID userId) {
-        User user = findUserById(userId);
+    user.block();
+    User saved = userRepository.save(user);
 
-        if (user.isDeleted()) {
-            throw UserServiceException.deleted(userId);
-        }
+    return UserResponse.fromDomain(saved);
+  }
 
-        user.block();
-        User saved = userRepository.save(user);
+  @Transactional
+  public UserResponse activateUser(UUID userId) {
+    User user = findUserById(userId);
 
-        return UserResponse.fromDomain(saved);
+    if (user.isDeleted()) {
+      throw BusinessException.userDeleted(userId);
     }
 
-    @Transactional
-    public UserResponse activateUser(UUID userId) {
-        User user = findUserById(userId);
+    user.activate();
+    User saved = userRepository.save(user);
 
-        if (user.isDeleted()) {
-            throw UserServiceException.deleted(userId);
-        }
+    return UserResponse.fromDomain(saved);
+  }
 
-        user.activate();
-        User saved = userRepository.save(user);
+  @Transactional
+  public UserResponse deleteUser(UUID userId) {
+    User user = findUserById(userId);
 
-        return UserResponse.fromDomain(saved);
+    boolean hasWallets = walletRepository.existsByUserId(userId);
+    if (hasWallets) {
+      throw BusinessException.userCannotDeleteWithWallets(userId);
     }
 
-    @Transactional
-    public UserResponse deleteUser(UUID userId) {
-        User user = findUserById(userId);
+    user.delete();
+    return UserResponse.fromDomain(userRepository.save(user));
+  }
 
-        boolean hasWallets = walletRepository.existsByUserId(userId);
-        if (hasWallets) {
-            throw UserServiceException.cannotDeleteWithWallets(userId);
-        }
+  @Transactional(readOnly = true)
+  public boolean isUserActive(UUID userId) {
+    return userRepository.isUserActive(userId);
+  }
 
-        user.delete();
-        return UserResponse.fromDomain(userRepository.save(user));
-    }
-
-    @Transactional(readOnly = true)
-    public boolean isUserActive(UUID userId) {
-        return userRepository.isUserActive(userId);
-    }
-
-    private User findUserById(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> UserServiceException.notFound(userId));
-    }
+  private User findUserById(UUID userId) {
+    return userRepository.findById(userId)
+            .orElseThrow(() -> BusinessException.userNotFound(userId));
+  }
 }

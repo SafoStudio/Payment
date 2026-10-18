@@ -2,8 +2,9 @@ package com.safostudio.payment.payment.service;
 
 import com.safostudio.payment.payment.domain.Payment;
 import com.safostudio.payment.payment.repository.PaymentRepository;
+import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.wallet.service.TransferService;
-import com.safostudio.payment.wallet.service.dto.TransferRequest;
+import com.safostudio.payment.wallet.dto.TransferRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,31 +16,37 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentProcessor {
 
-    private final TransferService transferService;
-    private final PaymentRepository paymentRepository;
+  private final TransferService transferService;
+  private final PaymentRepository paymentRepository;
+  private final PaymentFailureHandler paymentFailureHandler;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Payment process(Payment payment) {
-        try {
-            payment.markAsProcessing();
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public Payment process(Payment payment) {
+    try {
+      payment.markAsProcessing();
 
-            TransferRequest request = TransferRequest.builder()
-                    .fromWalletId(payment.getWalletId())
-                    .toWalletId(payment.getTargetWalletId())
-                    .amount(payment.getAmount())
-                    .currency(payment.getCurrency())
-                    .idempotencyKey(payment.getIdempotencyKey())
-                    .description(payment.getDescription())
-                    .build();
+      TransferRequest request = TransferRequest.builder()
+              .fromWalletId(payment.getWalletId())
+              .toWalletId(payment.getTargetWalletId())
+              .amount(payment.getAmount())
+              .currency(payment.getCurrency())
+              .idempotencyKey(payment.getIdempotencyKey())
+              .description(payment.getDescription())
+              .build();
 
-            var transaction = transferService.transfer(request);
-            payment.succeed(transaction.getId());
+      var transaction = transferService.transfer(request);
+      payment.succeed(transaction.getId());
 
-        } catch (Exception e) {
-            log.error("Payment processing failed: ", e);
-            payment.fail();
-        }
+      return paymentRepository.save(payment);
 
-        return paymentRepository.save(payment);
+    } catch (BusinessException e) {
+      log.error("Payment processing failed: {}", e.getMessage());
+      paymentFailureHandler.markFailed(payment.getId());
+      throw e;
+    } catch (Exception e) {
+      log.error("Payment processing failed unexpectedly", e);
+      paymentFailureHandler.markFailed(payment.getId());
+      throw BusinessException.internalError("Payment processing failed");
     }
+  }
 }

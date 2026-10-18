@@ -1,6 +1,7 @@
 package com.safostudio.payment.wallet.domain;
 
-import com.safostudio.payment.wallet.exception.WalletException;
+import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.shared.util.MoneyUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,93 +21,77 @@ import java.util.UUID;
 @Table("wallets")
 public class Wallet {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private UUID userId;
+  private UUID userId;
 
-    private BigDecimal balance;
+  private BigDecimal balance;
 
-    private String currency;
+  private String currency;
 
-    private WalletStatus status;
+  private WalletStatus status;
 
-    @Version
-    private Long version;
+  @Version
+  private Long version;
 
-    private Instant createdAt;
+  private Instant createdAt;
 
-    private Instant updatedAt;
+  private Instant updatedAt;
 
-    public enum WalletStatus {
-        ACTIVE,
-        BLOCKED,
-        CLOSED
+  public enum WalletStatus {
+    ACTIVE,
+    BLOCKED,
+    CLOSED
+  }
+
+  public void debit(BigDecimal amount) {
+    MoneyUtils.validateAmount(amount);
+    validateForTransfer();
+
+    if (balance.compareTo(amount) < 0) {
+      throw BusinessException.insufficientFunds(balance, amount, currency);
     }
+    this.balance = balance.subtract(amount);
+  }
 
-    /**
-     * Withdrawal of funds from the wallet (debit)
-     */
-    public void debit(BigDecimal amount) {
-        validateForTransfer();
+  public void credit(BigDecimal amount) {
+    MoneyUtils.validateAmount(amount);
 
-        if (balance.compareTo(amount) < 0) {
-            throw WalletException.insufficient(balance, amount, currency);
-        }
-        this.balance = balance.subtract(amount);
+    if (status == WalletStatus.CLOSED) {
+      throw BusinessException.walletClosed();
     }
+    this.balance = balance.add(amount);
+  }
 
-    /**
-     * Crediting funds to your wallet (credit)
-     */
-    public void credit(BigDecimal amount) {
-        if (status == WalletStatus.CLOSED) {
-            throw WalletException.closed();
-        }
-        this.balance = balance.add(amount);
-    }
+  public boolean isActive() {
+    return status == WalletStatus.ACTIVE;
+  }
 
-    /**
-     * Checking wallet activity
-     */
-    public boolean isActive() {
-        return status == WalletStatus.ACTIVE;
+  public void validateForTransfer() {
+    if (status != WalletStatus.ACTIVE) {
+      throw BusinessException.walletNotActive(status);
     }
+  }
 
-    /**
-     * Validating a wallet for transfer
-     */
-    public void validateForTransfer() {
-        if (status != WalletStatus.ACTIVE) {
-            throw WalletException.inactive(status);
-        }
+  public void block() {
+    if (status != WalletStatus.ACTIVE) {
+      throw BusinessException.walletNotActive(status);
     }
+    this.status = WalletStatus.BLOCKED;
+  }
 
-    /**
-     * Wallet blocking
-     */
-    public void block() {
-        if (status == WalletStatus.ACTIVE) {
-            this.status = WalletStatus.BLOCKED;
-        }
+  public void unblock() {
+    if (status != WalletStatus.BLOCKED) {
+      throw BusinessException.walletNotActive(status);
     }
+    this.status = WalletStatus.ACTIVE;
+  }
 
-    /**
-     * Unlocking wallet
-     */
-    public void unblock() {
-        if (status == WalletStatus.BLOCKED) {
-            this.status = WalletStatus.ACTIVE;
-        }
+  public void close() {
+    if (balance.compareTo(BigDecimal.ZERO) != 0) {
+      throw BusinessException.walletNonZeroBalance(balance, currency);
     }
-
-    /**
-     * Closing a wallet (only if the balance is 0)
-     */
-    public void close() {
-        if (balance.compareTo(BigDecimal.ZERO) != 0) {
-            throw WalletException.nonZeroBalance(balance, currency);
-        }
-        this.status = WalletStatus.CLOSED;
-    }
+    this.status = WalletStatus.CLOSED;
+  }
 }

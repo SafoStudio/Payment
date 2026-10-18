@@ -1,6 +1,6 @@
 package com.safostudio.payment.payment.domain;
 
-import com.safostudio.payment.payment.exception.PaymentException;
+import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,129 +19,114 @@ import java.util.UUID;
 @Table("payments")
 public class Payment {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private UUID walletId;
+  private UUID walletId;
 
-    private UUID targetWalletId;
+  private UUID targetWalletId;
 
-    private BigDecimal amount;
+  private BigDecimal amount;
 
-    private String currency;
+  private String currency;
 
-    private PaymentStatus status;
+  private PaymentStatus status;
 
-    private PaymentType type;
+  private PaymentType type;
 
-    private String idempotencyKey;
+  private String idempotencyKey;
 
-    private String description;
+  private String description;
 
-    private UUID transactionId;
+  private UUID transactionId;
 
-    private Instant createdAt;
+  private Instant createdAt;
 
-    private Instant updatedAt;
+  private Instant updatedAt;
 
-    /**
-     * Creates a new payment
-     */
-    public static Payment create(UUID walletId, UUID targetWalletId,
-                                 BigDecimal amount, String currency,
-                                 PaymentType type, String idempotencyKey,
-                                 String description) {
-        validateAmount(amount);
-        validateWallets(walletId, targetWalletId, type);
+  public static Payment create(UUID walletId, UUID targetWalletId,
+                               BigDecimal amount, String currency,
+                               PaymentType type, String idempotencyKey,
+                               String description) {
+    validateAmount(amount);
+    validateWallets(walletId, targetWalletId, type);
 
-        return Payment.builder()
-                .id(null)
-                .walletId(walletId)
-                .targetWalletId(targetWalletId)
-                .amount(amount)
-                .currency(currency)
-                .status(PaymentStatus.PENDING)
-                .type(type)
-                .idempotencyKey(idempotencyKey)
-                .description(description)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+    return Payment.builder()
+            .id(null)
+            .walletId(walletId)
+            .targetWalletId(targetWalletId)
+            .amount(amount)
+            .currency(currency)
+            .status(PaymentStatus.PENDING)
+            .type(type)
+            .idempotencyKey(idempotencyKey)
+            .description(description)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+  }
+
+  public void markAsProcessing() {
+    if (status != PaymentStatus.PENDING) {
+      throw BusinessException.invalidPaymentStatus("process", status);
     }
+    this.status = PaymentStatus.PROCESSING;
+  }
 
-    /**
-     * Marks payment as processing
-     */
-    public void markAsProcessing() {
-        if (status != PaymentStatus.PENDING) {
-            throw PaymentException.invalidStatus("process", status);
-        }
-        this.status = PaymentStatus.PROCESSING;
+  public void succeed(UUID transactionId) {
+    if (status != PaymentStatus.PROCESSING && status != PaymentStatus.PENDING) {
+      throw BusinessException.invalidPaymentStatus("complete", status);
     }
+    this.status = PaymentStatus.SUCCEEDED;
+    this.transactionId = transactionId;
+  }
 
-    /**
-     * Marks payment as succeeded
-     */
-    public void succeed(UUID transactionId) {
-        if (status != PaymentStatus.PROCESSING && status != PaymentStatus.PENDING) {
-            throw PaymentException.invalidStatus("complete", status);
-        }
-        this.status = PaymentStatus.SUCCEEDED;
-        this.transactionId = transactionId;
+  public void fail() {
+    if (status == PaymentStatus.SUCCEEDED) {
+      throw BusinessException.paymentAlreadySucceeded();
     }
+    this.status = PaymentStatus.FAILED;
+  }
 
-    /**
-     * Marks payment as failed
-     */
-    public void fail() {
-        if (status == PaymentStatus.SUCCEEDED) {
-            throw PaymentException.alreadySucceeded();
-        }
-        this.status = PaymentStatus.FAILED;
+  public void refund() {
+    if (status != PaymentStatus.SUCCEEDED) {
+      throw BusinessException.paymentCannotRefund(status);
     }
+    this.status = PaymentStatus.REFUNDED;
+  }
 
-    /**
-     * Marks payment as refunded
-     */
-    public void refund() {
-        if (status != PaymentStatus.SUCCEEDED) {
-            throw PaymentException.cannotRefund(status);
-        }
-        this.status = PaymentStatus.REFUNDED;
+  public void cancel() {
+    if (status != PaymentStatus.PENDING) {
+      throw BusinessException.paymentCannotCancel(status);
     }
+    this.status = PaymentStatus.CANCELLED;
+  }
 
-    /**
-     * Cancels payment
-     */
-    public void cancel() {
-        if (status != PaymentStatus.PENDING) {
-            throw PaymentException.cannotCancel(status);
-        }
-        this.status = PaymentStatus.CANCELLED;
-    }
+  public boolean isPending() {
+    return status == PaymentStatus.PENDING;
+  }
+  public boolean isSucceeded() {
+    return status == PaymentStatus.SUCCEEDED;
+  }
+  public boolean isFailed() {
+    return status == PaymentStatus.FAILED;
+  }
 
-    /**
-     * Validations
-     */
-    public boolean isPending() {
-        return status == PaymentStatus.PENDING;
+  private static void validateAmount(BigDecimal amount) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw BusinessException.invalidAmount();
     }
-    public boolean isSucceeded() {
-        return status == PaymentStatus.SUCCEEDED;
-    }
-    public boolean isFailed() {
-        return status == PaymentStatus.FAILED;
-    }
-    private static void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw PaymentException.amountMustBePositive();
-        }
-    }
+  }
 
-    private static void validateWallets(UUID walletId, UUID targetWalletId, PaymentType type) {
-        if ((type == PaymentType.TRANSFER || type == PaymentType.PAYMENT) && walletId.equals(targetWalletId)) {
-                throw PaymentException.sameWallet();
-            }
-
+  private static void validateWallets(UUID walletId, UUID targetWalletId, PaymentType type) {
+    if (type != PaymentType.TRANSFER && type != PaymentType.PAYMENT) {
+      return;
     }
+    if (walletId == null || targetWalletId == null) {
+      throw BusinessException.validationError("Wallet IDs must not be null for transfer/payment");
+    }
+    if (walletId.equals(targetWalletId)) {
+      throw BusinessException.sameWallet();
+    }
+  }
 }

@@ -1,6 +1,6 @@
 package com.safostudio.payment.refund.domain;
 
-import com.safostudio.payment.refund.exception.RefundException;
+import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,111 +19,96 @@ import java.util.UUID;
 @Table("refunds")
 public class Refund {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private UUID paymentId;
+  private UUID paymentId;
 
-    private UUID transactionId;
+  private UUID transactionId;
 
-    private BigDecimal amount;
+  private BigDecimal amount;
 
-    private String currency;
+  private String currency;
 
-    private RefundStatus status;
+  private RefundStatus status;
 
-    private String reason;
+  private String reason;
 
-    private UUID originalTransactionId;
+  private UUID originalTransactionId;
 
-    private UUID refundTransactionId;
+  private UUID refundTransactionId;
 
-    private Instant createdAt;
+  private Instant createdAt;
 
-    private Instant updatedAt;
+  private Instant updatedAt;
 
-    public enum RefundStatus {
-        PENDING,
-        PROCESSING,
-        COMPLETED,
-        FAILED,
-        REJECTED
+  public enum RefundStatus {
+    PENDING,
+    PROCESSING,
+    COMPLETED,
+    FAILED,
+    REJECTED
+  }
+
+  public static Refund create(UUID paymentId, BigDecimal amount,
+                              String currency, String reason,
+                              UUID originalTransactionId) {
+
+    validateAmount(amount);
+
+    return Refund.builder()
+            .id(null)
+            .paymentId(paymentId)
+            .amount(amount)
+            .currency(currency)
+            .status(RefundStatus.PENDING)
+            .reason(reason)
+            .originalTransactionId(originalTransactionId)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+  }
+
+  public void process() {
+    if (status != RefundStatus.PENDING) {
+      throw BusinessException.invalidRefundStatus("process", status);
     }
+    this.status = RefundStatus.PROCESSING;
+  }
 
-    /**
-     * Creates a new refund
-     */
-    public static Refund create(UUID paymentId, BigDecimal amount,
-                                String currency, String reason,
-                                UUID originalTransactionId) {
-
-        validateAmount(amount);
-
-        return Refund.builder()
-                .id(null)
-                .paymentId(paymentId)
-                .amount(amount)
-                .currency(currency)
-                .status(RefundStatus.PENDING)
-                .reason(reason)
-                .originalTransactionId(originalTransactionId)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+  public void complete(UUID refundTransactionId) {
+    if (status != RefundStatus.PROCESSING) {
+      throw BusinessException.invalidRefundStatus("complete", status);
     }
+    this.status = RefundStatus.COMPLETED;
+    this.refundTransactionId = refundTransactionId;
+  }
 
-    /**
-     * Processes the refund
-     */
-    public void process() {
-        if (status != RefundStatus.PENDING) {
-            throw RefundException.invalidStatus("process", status);
-        }
-        this.status = RefundStatus.PROCESSING;
+  public void fail() {
+    if (status == RefundStatus.COMPLETED) {
+      throw BusinessException.refundAlreadyCompleted();
     }
+    this.status = RefundStatus.FAILED;
+  }
 
-    /**
-     * Completes the refund
-     */
-    public void complete(UUID refundTransactionId) {
-        if (status != RefundStatus.PROCESSING) {
-            throw RefundException.invalidStatus("complete", status);
-        }
-        this.status = RefundStatus.COMPLETED;
-        this.refundTransactionId = refundTransactionId;
+  public void reject() {
+    if (status != RefundStatus.PENDING) {
+      throw BusinessException.refundCannotReject(status);
     }
+    this.status = RefundStatus.REJECTED;
+  }
 
-    /**
-     * Fails the refund
-     */
-    public void fail(String error) {
-        if (status == RefundStatus.COMPLETED) {
-            throw RefundException.alreadyCompleted();
-        }
-        this.status = RefundStatus.FAILED;
+  private static void validateAmount(BigDecimal amount) {
+    if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw BusinessException.invalidAmount();
     }
+  }
 
-    /**
-     * Rejects the refund
-     */
-    public void reject(String reason) {
-        if (status != RefundStatus.PENDING) {
-            throw RefundException.cannotReject(status);
-        }
-        this.status = RefundStatus.REJECTED;
-    }
+  public boolean isCompleted() {
+    return status == RefundStatus.COMPLETED;
+  }
 
-    private static void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw RefundException.amountMustBePositive();
-        }
-    }
-
-    public boolean isCompleted() {
-        return status == RefundStatus.COMPLETED;
-    }
-
-    public boolean isFailed() {
-        return status == RefundStatus.FAILED;
-    }
+  public boolean isFailed() {
+    return status == RefundStatus.FAILED;
+  }
 }

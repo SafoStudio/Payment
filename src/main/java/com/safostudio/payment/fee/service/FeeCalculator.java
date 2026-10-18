@@ -3,7 +3,9 @@ package com.safostudio.payment.fee.service;
 import com.safostudio.payment.fee.domain.Fee;
 import com.safostudio.payment.fee.domain.FeeRule;
 import com.safostudio.payment.fee.repository.FeeRuleRepository;
-import com.safostudio.payment.fee.service.dto.CalculateFeeRequest;
+import com.safostudio.payment.fee.dto.CalculateFeeRequest;
+import com.safostudio.payment.shared.config.SystemWalletsProperties;
+import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,70 +20,57 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FeeCalculator {
 
-    private final FeeRuleRepository feeRuleRepository;
-    private static final UUID SYSTEM_FEES_WALLET =
-            UUID.fromString("00000000-0000-0000-0000-000000000002");
+  private final FeeRuleRepository feeRuleRepository;
+  private final SystemWalletsProperties systemWalletsProperties;
 
-    /**
-     * Calculate fees for a transaction
-     */
-    public List<Fee> calculateFees(CalculateFeeRequest request) {
-        List<Fee> fees = new ArrayList<>();
-        List<FeeRule> rules = findApplicableRules(request);
+  public List<Fee> calculateFees(CalculateFeeRequest request) {
+    List<Fee> fees = new ArrayList<>();
+    List<FeeRule> rules = findApplicableRules(request);
 
-        for (FeeRule rule : rules) {
-            BigDecimal feeAmount = rule.calculate(request.getAmount());
+    for (FeeRule rule : rules) {
+      BigDecimal feeAmount = rule.calculate(request.getAmount());
 
-            UUID toWalletId = rule.getToWalletId() != null ?
-                    rule.getToWalletId() : SYSTEM_FEES_WALLET;
+      UUID toWalletId = rule.getToWalletId() != null ?
+              rule.getToWalletId() : systemWalletsProperties.getFeeWalletId();
 
-            Fee fee;
-            if (rule.getFeeType() == FeeRule.FeeType.FIXED) {
-                fee = Fee.createFixed(
-                        null,
-                        rule.getFromWalletId() != null ? rule.getFromWalletId() : request.getFromWalletId(),
-                        toWalletId,
-                        feeAmount,
-                        request.getCurrency()
-                );
-            } else {
-                fee = Fee.createPercentage(
-                        null,
-                        rule.getFromWalletId() != null ? rule.getFromWalletId() : request.getFromWalletId(),
-                        toWalletId,
-                        rule.getPercentage(),
-                        feeAmount,
-                        request.getCurrency()
-                );
-            }
+      UUID fromWalletId = rule.getFromWalletId() != null ?
+              rule.getFromWalletId() : request.getFromWalletId();
 
-            fees.add(fee);
-        }
+      Fee fee = switch (rule.getFeeType()) {
+        case FIXED -> Fee.createFixed(
+                null, fromWalletId, toWalletId, feeAmount, request.getCurrency());
+        case PERCENTAGE -> Fee.createPercentage(
+                null, fromWalletId, toWalletId, rule.getPercentage(), feeAmount, request.getCurrency());
+        case MIXED -> Fee.createMixed(
+                null, fromWalletId, toWalletId,
+                rule.getPercentage(), rule.getFixedAmount(), feeAmount, request.getCurrency());
+        case TIERED -> throw BusinessException.validationError("TIERED fee type is not implemented");
+      };
 
-        return fees;
+      fees.add(fee);
     }
 
-    /**
-     * Find all applicable fee rules
-     */
-    private List<FeeRule> findApplicableRules(CalculateFeeRequest request) {
-        List<FeeRule> rules = new ArrayList<>();
+    return fees;
+  }
 
-        var fromWalletRule = feeRuleRepository
-                .findByTransactionTypeAndFromWalletIdAndIsActiveTrue(
-                        request.getTransactionType(), request.getFromWalletId());
-        fromWalletRule.ifPresent(rules::add);
+  private List<FeeRule> findApplicableRules(CalculateFeeRequest request) {
+    List<FeeRule> rules = new ArrayList<>();
 
-        var toWalletRule = feeRuleRepository
-                .findByTransactionTypeAndToWalletIdAndIsActiveTrue(
-                        request.getTransactionType(), request.getToWalletId());
-        toWalletRule.ifPresent(rules::add);
+    var fromWalletRule = feeRuleRepository
+            .findByTransactionTypeAndFromWalletIdAndIsActiveTrue(
+                    request.getTransactionType(), request.getFromWalletId());
+    fromWalletRule.ifPresent(rules::add);
 
-        if (rules.isEmpty()) {
-            rules.addAll(feeRuleRepository
-                    .findByTransactionTypeAndIsActiveTrue(request.getTransactionType()));
-        }
+    var toWalletRule = feeRuleRepository
+            .findByTransactionTypeAndToWalletIdAndIsActiveTrue(
+                    request.getTransactionType(), request.getToWalletId());
+    toWalletRule.ifPresent(rules::add);
 
-        return rules;
+    if (rules.isEmpty()) {
+      rules.addAll(feeRuleRepository
+              .findByTransactionTypeAndIsActiveTrue(request.getTransactionType()));
     }
+
+    return rules;
+  }
 }
