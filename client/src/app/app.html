@@ -1,0 +1,18 @@
+<main>
+  <h1>{{ title() }}</h1>
+
+  @if (loading()) {
+  <p>Loading…</p>
+  } @else if (error()) {
+  <p style="color: red">Error: {{ error() }}</p>
+  } @else {
+  <p>Wallets: {{ wallets().length }}</p>
+  <ul>
+    @for (w of wallets(); track w.id) {
+    <li>{{ w.id }} — {{ w.currency }} — {{ w.balance }}</li>
+    }
+  </ul>
+  }
+</main>
+
+<router-outlet />
