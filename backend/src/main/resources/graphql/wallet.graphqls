@@ -1,0 +1,34 @@
+type Wallet {
+    id: ID!
+    userId: ID!
+    balance: Float!
+    currency: String!
+    status: WalletStatus!
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum WalletStatus {
+    ACTIVE
+    BLOCKED
+    CLOSED
+}
+
+input CreateWalletInput {
+    userId: ID!
+    currency: String!
+    initialBalance: Float
+}
+
+extend type Query {
+    wallet(id: ID!): Wallet!
+    walletsByUserId(userId: ID!): [Wallet!]!
+    wallets: [Wallet!]!
+}
+
+extend type Mutation {
+    createWallet(input: CreateWalletInput!): Wallet!
+    blockWallet(id: ID!): Wallet!
+    unblockWallet(id: ID!): Wallet!
+    closeWallet(id: ID!): Wallet!
+}

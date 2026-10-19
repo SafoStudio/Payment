@@ -1,0 +1,38 @@
+type Refund {
+    id: ID!
+    paymentId: ID!
+    amount: Float!
+    currency: String!
+    status: RefundStatus!
+    reason: String
+    originalTransactionId: ID!
+    refundTransactionId: ID
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum RefundStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+    REJECTED
+}
+
+input CreateRefundInput {
+    paymentId: ID!
+    amount: Float!
+    currency: String!
+    reason: String
+    idempotencyKey: String!
+}
+
+extend type Query {
+    refund(id: ID!): Refund
+    refundsByPayment(paymentId: ID!): [Refund!]!
+}
+
+extend type Mutation {
+    createRefund(input: CreateRefundInput!): Refund!
+    processRefund(id: ID!): Refund!
+}

@@ -1,0 +1,53 @@
+type Transaction {
+    id: ID!
+    debitWalletId: ID!
+    creditWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: TransactionType!
+    status: TransactionStatus!
+    description: String
+    referenceId: ID
+    createdAt: String!
+}
+
+enum TransactionType {
+    TRANSFER
+    TOP_UP
+    WITHDRAWAL
+    REFUND
+}
+
+enum TransactionStatus {
+    PENDING
+    COMPLETED
+    FAILED
+    CANCELLED
+}
+
+input TransferInput {
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    description: String
+    idempotencyKey: String!
+}
+
+input TopUpInput {
+    walletId: ID!
+    amount: Float!
+    currency: String!
+    description: String
+    idempotencyKey: String!
+}
+
+extend type Query {
+    transaction(id: ID!): Transaction!
+    walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
+}
+
+extend type Mutation {
+    transfer(input: TransferInput!): Transaction!
+    topUp(input: TopUpInput!): Transaction!
+}

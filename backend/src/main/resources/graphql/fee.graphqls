@@ -1,0 +1,91 @@
+type Fee {
+    id: ID!
+    transactionId: ID
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: FeeType!
+    percentage: Float
+    calculationRule: String
+    createdAt: String!
+}
+
+enum FeeType {
+    FIXED
+    PERCENTAGE
+    MIXED
+    TIERED
+}
+
+type FeeRule {
+    id: ID!
+    name: String!
+    transactionType: String!
+    feeType: FeeType!
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
+input FeeInput {
+    transactionId: ID
+    fromWalletId: ID!
+    toWalletId: ID!
+    amount: Float!
+    currency: String!
+    type: String!
+    percentage: Float
+    calculationRule: String
+}
+
+input CreateFeeRuleInput {
+    name: String!
+    transactionType: String!
+    feeType: FeeType!
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean
+}
+
+input UpdateFeeRuleInput {
+    id: ID!
+    name: String
+    transactionType: String
+    feeType: FeeType
+    fixedAmount: Float
+    percentage: Float
+    minAmount: Float
+    maxAmount: Float
+    currency: String
+    fromWalletId: ID
+    toWalletId: ID
+    isActive: Boolean
+}
+
+extend type Query {
+    feesByTransaction(transactionId: ID!): [Fee!]!
+    feesByWallet(walletId: ID!): [Fee!]!
+    feeRules: [FeeRule!]!
+    feeRule(id: ID!): FeeRule
+    feeRulesByType(transactionType: String!): [FeeRule!]!
+}
+
+extend type Mutation {
+    createFee(input: FeeInput!): Fee!
+    createFeeRule(input: CreateFeeRuleInput!): FeeRule!
+    updateFeeRule(input: UpdateFeeRuleInput!): FeeRule!
+    deleteFeeRule(id: ID!): Boolean!
+}

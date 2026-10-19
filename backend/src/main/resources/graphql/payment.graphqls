@@ -1,0 +1,52 @@
+type Payment {
+    id: ID!
+    walletId: ID!
+    targetWalletId: ID!
+    amount: Float!
+    currency: String!
+    status: PaymentStatus!
+    type: PaymentType!
+    idempotencyKey: String
+    description: String
+    transactionId: ID
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum PaymentStatus {
+    PENDING
+    PROCESSING
+    SUCCEEDED
+    FAILED
+    REFUNDED
+    CANCELLED
+}
+
+enum PaymentType {
+    TRANSFER
+    TOP_UP
+    WITHDRAWAL
+    REFUND
+    PAYMENT
+}
+
+input CreatePaymentInput {
+    walletId: ID!
+    targetWalletId: ID!
+    amount: Float!
+    currency: String!
+    idempotencyKey: String!
+    description: String
+}
+
+extend type Query {
+    payment(id: ID!): Payment!
+    paymentByIdempotencyKey(key: String!): Payment
+    paymentsByWallet(walletId: ID!): [Payment!]!
+}
+
+extend type Mutation {
+    createPayment(input: CreatePaymentInput!): Payment!
+    processPayment(id: ID!): Payment!
+    cancelPayment(id: ID!): Payment!
+}
