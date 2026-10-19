@@ -1,12 +1,12 @@
 package com.safostudio.payment.user.dto;
 
 import com.safostudio.payment.user.domain.User;
-import com.safostudio.payment.user.domain.UserRole;
 import com.safostudio.payment.user.domain.UserStatus;
 import lombok.Builder;
 import lombok.Value;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Value
@@ -18,12 +18,12 @@ public class UserResponse {
   String firstName;
   String lastName;
   String fullName;
-  UserRole role;
+  List<String> roles;
   UserStatus status;
   Instant createdAt;
   Instant updatedAt;
 
-  public static UserResponse fromDomain(User user) {
+  public static UserResponse fromDomain(User user, List<String> roleCodes) {
     return UserResponse.builder()
             .id(user.getId())
             .email(user.getEmail())
@@ -31,7 +31,7 @@ public class UserResponse {
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .fullName(user.getFirstName() + " " + user.getLastName())
-            .role(user.getRole())
+            .roles(roleCodes)
             .status(user.getStatus())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())

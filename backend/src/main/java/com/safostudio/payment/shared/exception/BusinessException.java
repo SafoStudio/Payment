@@ -212,4 +212,8 @@ public class BusinessException extends RuntimeException {
     return new BusinessException(ErrorCode.IDEMPOTENCY_KEY_REUSE,
             "Idempotency key reused with different request payload: " + key);
   }
+
+  public static BusinessException invalidRoleCodes(String message) {
+    return new BusinessException(ErrorCode.INVALID_ROLE_CODES, message);
+  }
 }

@@ -1,11 +1,11 @@
 package com.safostudio.payment.user.api.input;
 
-import com.safostudio.payment.user.domain.UserRole;
+import java.util.List;
 
 public record CreateUserInput(
         String email,
         String phone,
         String firstName,
         String lastName,
-        UserRole role
+        List<String> roleCodes
 ) {}

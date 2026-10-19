@@ -50,7 +50,7 @@ public class UserController {
                 .phone(input.phone())
                 .firstName(input.firstName())
                 .lastName(input.lastName())
-                .role(input.role())
+                .roleCodes(input.roleCodes())
                 .build();
         return userService.createUser(request);
     }

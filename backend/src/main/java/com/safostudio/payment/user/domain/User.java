@@ -30,21 +30,18 @@ public class User {
 
   private String lastName;
 
-  private UserRole role;
-
   private UserStatus status;
 
   private Instant createdAt;
 
   private Instant updatedAt;
 
-  public static User create(String email, String firstName, String lastName, UserRole role) {
+  public static User create(String email, String firstName, String lastName) {
     return User.builder()
             .id(null)
             .email(email)
             .firstName(firstName)
             .lastName(lastName)
-            .role(role != null ? role : UserRole.USER)
             .status(UserStatus.ACTIVE)
             .createdAt(Instant.now())
             .updatedAt(Instant.now())

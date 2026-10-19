@@ -1,7 +1,6 @@
 package com.safostudio.payment.user.repository;
 
 import com.safostudio.payment.user.domain.User;
-import com.safostudio.payment.user.domain.UserRole;
 import com.safostudio.payment.user.domain.UserStatus;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
@@ -22,8 +21,6 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
   List<User> findAllByStatus(UserStatus status);
 
-  List<User> findAllByRole(UserRole role);
-
   boolean existsByEmail(String email);
 
   boolean existsByPhone(String phone);
@@ -40,4 +37,12 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
   @Query("SELECT COUNT(*) > 0 FROM users WHERE id = :userId AND status = 'ACTIVE'")
   boolean isUserActive(@Param("userId") UUID userId);
+
+  @Query("""
+          SELECT u.* FROM users u
+          JOIN user_roles ur ON ur.user_id = u.id
+          JOIN roles r ON r.id = ur.role_id
+          WHERE r.code = :roleCode
+          """)
+  List<User> findAllByRoleCode(@Param("roleCode") String roleCode);
 }
