@@ -22,6 +22,8 @@ public class User {
 
   private String email;
 
+  private String passwordHash;
+
   private String phone;
 
   private String firstName;
@@ -79,6 +81,10 @@ public class User {
 
   public void updateEmail(String email) {
     this.email = email;
+  }
+
+  public void updatePasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
   }
 
   public void updatePhone(String phone) {
