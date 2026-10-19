@@ -1,8 +1,23 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+### Build artifacts ###
+**/target/
+**/build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+### Logs ###
+logs/
+**/logs/
+*.log
+*.log.gz
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
 
 ### STS ###
 .apt_generated
@@ -13,38 +28,16 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
 
-### Docker ###
-docker-compose.override.yml
-.docker-volumes/
-postgres_data/
-pgadmin-data/
-
-### Java ###
-*.log
-*.class
-*.jar
-*.war
-*.ear
+### Maven ###
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -52,7 +45,13 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
+**/.mvn/timing.properties
+
+### Docker ###
+docker-compose.override.yml
+.docker-volumes/
+postgres_data/
+pgadmin-data/
 
 ### Spring Boot ###
 **/application-local.yml
@@ -68,12 +67,21 @@ buildNumber.properties
 **/secrets/
 **/credentials/
 
-### Logs ###
-logs/
-
 ### pgAdmin ###
 *.pgpass
 servers.json
 !pgadmin-servers.json
 
+### Angular (client) — на будущее ###
+client/node_modules/
+client/dist/
+client/.angular/
+client/coverage/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Misc ###
+HELP.md
 note.md
