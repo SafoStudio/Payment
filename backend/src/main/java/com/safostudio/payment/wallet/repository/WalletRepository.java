@@ -45,4 +45,7 @@ public interface WalletRepository extends CrudRepository<Wallet, UUID> {
 
   @Query("SELECT COUNT(*) > 0 FROM wallets WHERE id = :walletId AND status = 'ACTIVE'")
   boolean isWalletActive(@Param("walletId") UUID walletId);
+
+  @Query("SELECT * FROM wallets WHERE user_id IS NOT NULL")
+  List<Wallet> findAllUserWallets();
 }

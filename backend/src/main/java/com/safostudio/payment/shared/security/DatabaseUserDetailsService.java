@@ -41,11 +41,11 @@ public class DatabaseUserDetailsService implements UserDetailsService {
             .map(GrantedAuthority.class::cast)
             .toList();
 
-    return org.springframework.security.core.userdetails.User.builder()
-            .username(user.getEmail())
-            .password(user.getPasswordHash() != null ? user.getPasswordHash() : "")
-            .authorities(authorities)
-            .disabled(!enabled)
-            .build();
+    return new AppUserDetails(
+            user.getId(),
+            user.getEmail(),
+            user.getPasswordHash() != null ? user.getPasswordHash() : "",
+            enabled,
+            authorities);
   }
 }
