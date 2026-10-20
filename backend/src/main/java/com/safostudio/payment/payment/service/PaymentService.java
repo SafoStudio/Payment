@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -89,6 +88,6 @@ public class PaymentService {
     return paymentRepository.findByWalletId(walletId)
             .stream()
             .map(PaymentResponse::from)
-            .collect(Collectors.toList());
+            .toList();
   }
 }

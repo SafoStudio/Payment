@@ -97,7 +97,7 @@ public class RefundService {
     return refundRepository.findByPaymentId(paymentId)
             .stream()
             .map(RefundResponse::from)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   private <T> T deserialize(String json, Class<T> type) {

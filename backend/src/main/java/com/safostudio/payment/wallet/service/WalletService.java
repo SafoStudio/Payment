@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -72,11 +71,6 @@ public class WalletService {
   }
 
   @Transactional(readOnly = true)
-  public Wallet getWalletEntity(UUID walletId) {
-    return findWalletById(walletId);
-  }
-
-  @Transactional(readOnly = true)
   public List<WalletResponse> getWalletsByUserId(UUID userId) {
     if (!userRepository.existsById(userId)) {
       throw BusinessException.userNotFound(userId);
@@ -84,7 +78,7 @@ public class WalletService {
 
     return walletRepository.findAllByUserId(userId).stream()
             .map(WalletResponse::fromDomain)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional
@@ -127,15 +121,10 @@ public class WalletService {
   }
 
   @Transactional(readOnly = true)
-  public boolean isWalletActive(UUID walletId) {
-    return walletRepository.isWalletActive(walletId);
-  }
-
-  @Transactional(readOnly = true)
   public List<WalletResponse> getAllWallets() {
     return StreamSupport.stream(walletRepository.findAll().spliterator(), false)
             .map(WalletResponse::fromDomain)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional

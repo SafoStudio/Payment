@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -40,13 +39,13 @@ public class FeeService {
                     .calculationRule(fee.getCalculationRule())
                     .createdAt(fee.getCreatedAt())
                     .build())
-            .collect(Collectors.toList());
+            .toList();
 
     feeRepository.saveAll(feesWithTransaction);
 
     return feesWithTransaction.stream()
             .map(FeeResponse::from)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional
@@ -58,7 +57,7 @@ public class FeeService {
   @Transactional
   public List<Fee> saveAll(List<Fee> fees) {
     return StreamSupport.stream(feeRepository.saveAll(fees).spliterator(), false)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional(readOnly = true)
@@ -66,7 +65,7 @@ public class FeeService {
     return feeRepository.findByTransactionId(transactionId)
             .stream()
             .map(FeeResponse::from)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional(readOnly = true)
@@ -74,6 +73,6 @@ public class FeeService {
     return feeRepository.findByFromWalletId(walletId)
             .stream()
             .map(FeeResponse::from)
-            .collect(Collectors.toList());
+            .toList();
   }
 }

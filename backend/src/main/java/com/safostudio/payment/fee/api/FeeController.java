@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.time.Instant;
@@ -21,16 +22,19 @@ public class FeeController {
 
   private final FeeService feeService;
 
+  @PreAuthorize("hasAuthority('fee:read')")
   @QueryMapping
   public List<FeeResponse> feesByTransaction(@Argument UUID transactionId) {
     return feeService.getFeesByTransaction(transactionId);
   }
 
+  @PreAuthorize("hasAuthority('fee:read')")
   @QueryMapping
   public List<FeeResponse> feesByWallet(@Argument UUID walletId) {
     return feeService.getFeesByWallet(walletId);
   }
 
+  @PreAuthorize("hasAuthority('fee_rule:manage')")
   @MutationMapping
   public FeeResponse createFee(@Argument FeeInput input) {
     Fee fee = Fee.builder()

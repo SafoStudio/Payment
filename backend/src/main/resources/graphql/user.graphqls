@@ -38,6 +38,7 @@ extend type Query {
     userByEmail(email: String!): User!
     users: [User!]!
     activeUsers: [User!]!
+    usersByRole(roleCode: String!): [User!]!
 }
 
 extend type Mutation {
@@ -46,4 +47,7 @@ extend type Mutation {
     blockUser(id: ID!): User!
     activateUser(id: ID!): User!
     deleteUser(id: ID!): User!
+    assignRoles(userId: ID!, roleCodes: [String!]!): User!
+    addRole(userId: ID!, roleCode: String!): User!
+    removeRole(userId: ID!, roleCode: String!): User!
 }

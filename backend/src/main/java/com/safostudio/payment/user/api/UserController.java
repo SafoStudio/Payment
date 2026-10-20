@@ -88,4 +88,28 @@ public class UserController {
   public UserResponse deleteUser(@Argument UUID id) {
     return userService.deleteUser(id);
   }
+
+  @PreAuthorize("hasAuthority('user:assign_role')")
+  @MutationMapping
+  public UserResponse assignRoles(@Argument UUID userId, @Argument List<String> roleCodes) {
+    return userService.assignRoles(userId, roleCodes);
+  }
+
+  @PreAuthorize("hasAuthority('user:assign_role')")
+  @MutationMapping
+  public UserResponse addRole(@Argument UUID userId, @Argument String roleCode) {
+    return userService.addRole(userId, roleCode);
+  }
+
+  @PreAuthorize("hasAuthority('user:assign_role')")
+  @MutationMapping
+  public UserResponse removeRole(@Argument UUID userId, @Argument String roleCode) {
+    return userService.removeRole(userId, roleCode);
+  }
+
+  @PreAuthorize("hasAuthority('user:read:all')")
+  @QueryMapping
+  public List<UserResponse> usersByRole(@Argument String roleCode) {
+    return userService.getUsersByRoleCode(roleCode);
+  }
 }

@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -59,11 +58,6 @@ public class UserService {
   }
 
   @Transactional(readOnly = true)
-  public User getUserEntity(UUID userId) {
-    return findUserById(userId);
-  }
-
-  @Transactional(readOnly = true)
   public UserResponse getUserByEmail(String email) {
     User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.userNotFoundByEmail(email));
@@ -74,21 +68,21 @@ public class UserService {
   public List<UserResponse> getAllUsers() {
     return StreamSupport.stream(userRepository.findAll().spliterator(), false)
             .map(this::toResponse)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional(readOnly = true)
   public List<UserResponse> getActiveUsers() {
     return userRepository.findAllActive().stream()
             .map(this::toResponse)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional(readOnly = true)
   public List<UserResponse> getUsersByRoleCode(String roleCode) {
     return userRepository.findAllByRoleCode(roleCode).stream()
             .map(this::toResponse)
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Transactional
@@ -175,9 +169,36 @@ public class UserService {
     return UserResponse.fromDomain(user, roles.stream().map(Role::getCode).toList());
   }
 
-  @Transactional(readOnly = true)
-  public boolean isUserActive(UUID userId) {
-    return userRepository.isUserActive(userId);
+  @Transactional
+  public UserResponse addRole(UUID userId, String roleCode) {
+    User user = findUserById(userId);
+
+    if (user.isDeleted()) {
+      throw BusinessException.userDeleted(userId);
+    }
+
+    Role role = roleRepository.findByCode(roleCode)
+            .orElseThrow(() -> BusinessException.invalidRoleCodes("Unknown role: " + roleCode));
+
+    userRoleRepository.assignRole(userId, role.getId());
+
+    return toResponse(user);
+  }
+
+  @Transactional
+  public UserResponse removeRole(UUID userId, String roleCode) {
+    User user = findUserById(userId);
+
+    if (user.isDeleted()) {
+      throw BusinessException.userDeleted(userId);
+    }
+
+    Role role = roleRepository.findByCode(roleCode)
+            .orElseThrow(() -> BusinessException.invalidRoleCodes("Unknown role: " + roleCode));
+
+    userRoleRepository.removeRole(userId, role.getId());
+
+    return toResponse(user);
   }
 
   private UserResponse toResponse(User user) {
