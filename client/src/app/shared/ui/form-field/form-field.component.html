@@ -1,0 +1,15 @@
+<div class="field">
+  @if (label()) {
+  <label class="field__label" [attr.for]="forId()">{{ label() }}</label>
+  }
+
+  <div class="field__control">
+    <ng-content></ng-content>
+  </div>
+
+  @if (error()) {
+  <p class="field__error" role="alert">{{ error() }}</p>
+  } @else if (hint()) {
+  <p class="field__hint">{{ hint() }}</p>
+  }
+</div>

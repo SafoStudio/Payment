@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+
+  &__label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  &__control {
+    display: block;
+  }
+
+  &__hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  &__error {
+    font-size: var(--font-size-xs);
+    color: var(--color-danger);
+    margin: 0;
+  }
+}
