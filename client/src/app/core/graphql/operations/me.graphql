@@ -1,0 +1,10 @@
+query Me {
+  me {
+    id
+    email
+    roles
+    permissions
+    hasPasskey
+    status
+  }
+}

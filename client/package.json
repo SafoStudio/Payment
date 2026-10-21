@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
@@ -17,6 +18,8 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "@urql/core": "^6.0.3",
+    "graphql": "^17.0.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -24,6 +27,10 @@
     "@angular/build": "^22.2.3",
     "@angular/cli": "^22.2.3",
     "@angular/compiler-cli": "^22.2.0",
+    "@graphql-codegen/cli": "^7.4.6",
+    "@graphql-codegen/typed-document-node": "^7.2.0",
+    "@graphql-codegen/typescript": "^6.1.2",
+    "@graphql-codegen/typescript-operations": "^6.1.10",
     "jsdom": "^30.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
