@@ -5,6 +5,8 @@ import com.safostudio.payment.shared.security.DatabaseUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,13 +30,18 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
   @Bean
+  AuthenticationManager authenticationManager(DatabaseUserDetailsService uds,
+                                              PasswordEncoder passwordEncoder) {
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider(uds);
+    provider.setPasswordEncoder(passwordEncoder);
+    return new ProviderManager(provider);
+  }
+
+  @Bean
   SecurityFilterChain filterChain(HttpSecurity http,
                                   DatabaseUserDetailsService uds,
                                   SecurityContextRepository securityContextRepository,
                                   PlatformTransactionManager transactionManager) {
-    DaoAuthenticationProvider daoProvider = new DaoAuthenticationProvider(uds);
-    daoProvider.setPasswordEncoder(passwordEncoder());
-
     AppUserDetailsNormalizingFilter normalizerFilter =
             new AppUserDetailsNormalizingFilter(uds, securityContextRepository);
 
@@ -44,7 +51,6 @@ public class SecurityConfig {
     return http
             .securityContext(sc -> sc
                     .securityContextRepository(securityContextRepository))
-            .authenticationProvider(daoProvider)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/graphql", "/graphiql/**").permitAll()
@@ -56,7 +62,7 @@ public class SecurityConfig {
                     .allowedOrigins("http://localhost:4200", "http://localhost:8080"))
             .formLogin(withDefaults())
             .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/graphql", "/auth/**"))
+                    .ignoringRequestMatchers("/graphql", "/auth/**", "/webauthn/**"))
             .addFilterBefore(webauthnTxFilter, AuthorizationFilter.class)
             .addFilterBefore(normalizerFilter, AuthorizationFilter.class)
             .build();
