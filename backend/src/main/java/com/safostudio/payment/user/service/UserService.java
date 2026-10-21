@@ -1,6 +1,7 @@
 package com.safostudio.payment.user.service;
 
 import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.user.domain.Role;
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.user.dto.CreateUserRequest;
@@ -11,9 +12,16 @@ import com.safostudio.payment.user.repository.UserRepository;
 import com.safostudio.payment.user.repository.UserRoleRepository;
 import com.safostudio.payment.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity;
+import org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository;
+import org.springframework.security.web.webauthn.management.UserCredentialRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
@@ -26,6 +34,8 @@ public class UserService {
   private final RoleRepository roleRepository;
   private final UserRoleRepository userRoleRepository;
   private final WalletRepository walletRepository;
+  private final PublicKeyCredentialUserEntityRepository userEntities;
+  private final UserCredentialRepository userCredentials;
 
   @Transactional
   public UserResponse createUser(CreateUserRequest request) {
@@ -48,7 +58,7 @@ public class UserService {
     List<Role> roles = resolveRoles(request.getRoleCodes());
     userRoleRepository.replaceRoles(saved.getId(), roles.stream().map(Role::getId).toList());
 
-    return UserResponse.fromDomain(saved, roles.stream().map(Role::getCode).toList());
+    return UserResponse.fromDomain(saved, roles.stream().map(Role::getCode).toList(), List.of(), null);
   }
 
   @Transactional(readOnly = true)
@@ -62,6 +72,31 @@ public class UserService {
     User user = userRepository.findByEmail(email)
             .orElseThrow(() -> BusinessException.userNotFoundByEmail(email));
     return toResponse(user);
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof AppUserDetails principal)) {
+      throw BusinessException.userNotFound(null);
+    }
+
+    User user = findUserById(principal.getUserId());
+
+    List<String> roleCodes = new ArrayList<>();
+    List<String> permissions = new ArrayList<>();
+    for (GrantedAuthority authority : principal.getAuthorities()) {
+      String code = authority.getAuthority();
+      if (code.startsWith("ROLE_")) {
+        roleCodes.add(code.substring("ROLE_".length()));
+      } else {
+        permissions.add(code);
+      }
+    }
+
+    boolean hasPasskey = hasPasskey(user.getEmail());
+
+    return UserResponse.fromDomain(user, roleCodes, permissions, hasPasskey);
   }
 
   @Transactional(readOnly = true)
@@ -166,7 +201,7 @@ public class UserService {
     List<Role> roles = resolveRoles(roleCodes);
     userRoleRepository.replaceRoles(userId, roles.stream().map(Role::getId).toList());
 
-    return UserResponse.fromDomain(user, roles.stream().map(Role::getCode).toList());
+    return UserResponse.fromDomain(user, roles.stream().map(Role::getCode).toList(), List.of(), null);
   }
 
   @Transactional
@@ -201,9 +236,17 @@ public class UserService {
     return toResponse(user);
   }
 
+  private boolean hasPasskey(String email) {
+    PublicKeyCredentialUserEntity userEntity = userEntities.findByUsername(email);
+    if (userEntity == null) {
+      return false;
+    }
+    return !userCredentials.findByUserId(userEntity.getId()).isEmpty();
+  }
+
   private UserResponse toResponse(User user) {
     List<String> roleCodes = roleRepository.findRoleCodesByUserId(user.getId());
-    return UserResponse.fromDomain(user, roleCodes);
+    return UserResponse.fromDomain(user, roleCodes, List.of(), null);
   }
 
   private List<Role> resolveRoles(List<String> roleCodes) {

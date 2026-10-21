@@ -6,6 +6,8 @@ type User {
     lastName: String!
     fullName: String!
     roles: [String!]!
+    permissions: [String!]!
+    hasPasskey: Boolean
     status: UserStatus!
     wallets: [Wallet!]!
     createdAt: String!
@@ -34,6 +36,7 @@ input UpdateUserInput {
 }
 
 extend type Query {
+    me: User!
     user(id: ID!): User!
     userByEmail(email: String!): User!
     users: [User!]!

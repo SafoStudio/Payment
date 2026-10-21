@@ -22,6 +22,12 @@ public class UserController {
 
   private final UserService userService;
 
+  @PreAuthorize("isAuthenticated()")
+  @QueryMapping
+  public UserResponse me() {
+    return userService.getCurrentUser();
+  }
+
   @PreAuthorize("hasAuthority('user:read:all')")
   @QueryMapping
   public UserResponse user(@Argument UUID id) {

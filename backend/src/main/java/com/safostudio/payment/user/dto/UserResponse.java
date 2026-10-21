@@ -19,11 +19,14 @@ public class UserResponse {
   String lastName;
   String fullName;
   List<String> roles;
+  List<String> permissions;
+  Boolean hasPasskey;
   UserStatus status;
   Instant createdAt;
   Instant updatedAt;
 
-  public static UserResponse fromDomain(User user, List<String> roleCodes) {
+  public static UserResponse fromDomain(User user, List<String> roleCodes,
+                                        List<String> permissionCodes, Boolean hasPasskey) {
     return UserResponse.builder()
             .id(user.getId())
             .email(user.getEmail())
@@ -32,6 +35,8 @@ public class UserResponse {
             .lastName(user.getLastName())
             .fullName(user.getFirstName() + " " + user.getLastName())
             .roles(roleCodes)
+            .permissions(permissionCodes)
+            .hasPasskey(hasPasskey)
             .status(user.getStatus())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
