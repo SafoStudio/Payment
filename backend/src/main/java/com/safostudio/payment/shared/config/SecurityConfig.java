@@ -56,13 +56,14 @@ public class SecurityConfig {
                     .requestMatchers("/graphql", "/graphiql/**").permitAll()
                     .requestMatchers("/webauthn/**", "/login/**").permitAll()
                     .anyRequest().authenticated())
+            .httpBasic(withDefaults())
+            .formLogin(withDefaults())
             .webAuthn(webAuthn -> webAuthn
                     .rpId("localhost")
                     .rpName("Payment Platform")
                     .allowedOrigins("http://localhost:4200", "http://localhost:8080"))
-            .formLogin(withDefaults())
             .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/graphql", "/auth/**", "/webauthn/**"))
+                    .ignoringRequestMatchers("/graphql", "/auth/**", "/webauthn/**", "/login/webauthn"))
             .addFilterBefore(webauthnTxFilter, AuthorizationFilter.class)
             .addFilterBefore(normalizerFilter, AuthorizationFilter.class)
             .build();
