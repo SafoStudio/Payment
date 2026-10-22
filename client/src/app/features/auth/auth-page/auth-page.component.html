@@ -1,0 +1,30 @@
+<div class="auth">
+  <div class="auth__card">
+    <h1 class="auth__title">Payment Platform</h1>
+
+    <div class="auth__tabs">
+      <button
+        type="button"
+        class="auth__tab"
+        [class.auth__tab--active]="mode() === 'login'"
+        (click)="setMode('login')"
+      >
+        Sign In
+      </button>
+      <button
+        type="button"
+        class="auth__tab"
+        [class.auth__tab--active]="mode() === 'register'"
+        (click)="setMode('register')"
+      >
+        Sign Up
+      </button>
+    </div>
+
+    @if (mode() === 'login') {
+    <app-login-form></app-login-form>
+    } @else {
+    <app-register-form></app-register-form>
+    }
+  </div>
+</div>

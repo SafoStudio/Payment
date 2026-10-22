@@ -1,0 +1,46 @@
+<form class="register-form" (submit)="onSubmit($event)">
+  <app-form-field label="First Name" forId="register-firstname">
+    <app-input
+      id="register-firstname"
+      type="text"
+      autocomplete="given-name"
+      [value]="firstName()"
+      (valueChange)="onFirstNameChange($event)"></app-input>
+  </app-form-field>
+
+  <app-form-field label="Last Name" forId="register-lastname">
+    <app-input
+      id="register-lastname"
+      type="text"
+      autocomplete="family-name"
+      [value]="lastName()"
+      (valueChange)="onLastNameChange($event)"></app-input>
+  </app-form-field>
+
+  <app-form-field label="Email" forId="register-email">
+    <app-input
+      id="register-email"
+      type="email"
+      autocomplete="email"
+      placeholder="you@example.com"
+      [value]="email()"
+      (valueChange)="onEmailChange($event)"></app-input>
+  </app-form-field>
+
+  <app-form-field label="Password" forId="register-password" hint="At least 8 characters">
+    <app-input
+      id="register-password"
+      type="password"
+      autocomplete="new-password"
+      [value]="password()"
+      (valueChange)="onPasswordChange($event)"></app-input>
+  </app-form-field>
+
+  @if (error()) {
+  <p class="register-form__error" role="alert">{{ error() }}</p>
+  }
+
+  <app-button type="submit" variant="primary" [fullWidth]="true" [loading]="loading()">
+    Create Account
+  </app-button>
+</form>

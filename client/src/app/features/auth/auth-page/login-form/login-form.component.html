@@ -1,0 +1,41 @@
+<form class="login-form" (submit)="onSubmit($event)">
+  <app-form-field label="Email" forId="login-email">
+    <app-input
+      id="login-email"
+      type="email"
+      autocomplete="username webauthn"
+      placeholder="you@example.com"
+      [value]="email()"
+      (valueChange)="onEmailChange($event)"></app-input>
+  </app-form-field>
+
+  <app-button
+    variant="primary"
+    [fullWidth]="true"
+    [loading]="passkeyLoading()"
+    (clicked)="onPasskeyLogin()"
+  >
+    Sign in with Passkey
+  </app-button>
+
+  <div class="login-form__divider">
+    <span>or sign in with password</span>
+  </div>
+
+  <app-form-field label="Password" forId="login-password">
+    <app-input
+      id="login-password"
+      type="password"
+      autocomplete="current-password"
+      [value]="password()"
+      (valueChange)="onPasswordChange($event)"></app-input>
+  </app-form-field>
+
+  @if (error()) {
+  <p class="login-form__error" role="alert">{{ error() }}</p>
+  }
+
+  <app-button type="submit" variant="secondary" [fullWidth]="true" [loading]="loading()">
+    Sign In with Password
+  </app-button>
+</form>
