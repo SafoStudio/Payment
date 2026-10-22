@@ -19,13 +19,6 @@ public interface RoleRepository extends CrudRepository<Role, UUID> {
   List<Role> findAllByCodeIn(List<String> codes);
 
   @Query("""
-            SELECT r.* FROM roles r
-            JOIN user_roles ur ON ur.role_id = r.id
-            WHERE ur.user_id = :userId
-            """)
-  List<Role> findAllByUserId(@Param("userId") UUID userId);
-
-  @Query("""
             SELECT r.code FROM roles r
             JOIN user_roles ur ON ur.role_id = r.id
             WHERE ur.user_id = :userId

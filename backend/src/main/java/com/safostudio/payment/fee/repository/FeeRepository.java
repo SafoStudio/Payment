@@ -11,5 +11,4 @@ import java.util.UUID;
 public interface FeeRepository extends CrudRepository<Fee, UUID> {
     List<Fee> findByTransactionId(UUID transactionId);
     List<Fee> findByFromWalletId(UUID walletId);
-    List<Fee> findByToWalletId(UUID walletId);
 }
