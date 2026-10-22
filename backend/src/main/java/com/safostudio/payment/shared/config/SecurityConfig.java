@@ -2,6 +2,7 @@ package com.safostudio.payment.shared.config;
 
 import com.safostudio.payment.shared.security.AppUserDetailsNormalizingFilter;
 import com.safostudio.payment.shared.security.DatabaseUserDetailsService;
+import com.safostudio.payment.user.auth.WebAuthnTransactionFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcOperations;

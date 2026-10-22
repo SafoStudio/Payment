@@ -1,9 +1,10 @@
 package com.safostudio.payment.shared.security;
 
 import lombok.Getter;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -13,18 +14,19 @@ import java.util.UUID;
  * userId from SecurityContext without a DB lookup
  * (avoids the UserDetailsService -> DataSource cycle).
  */
+@NullMarked
 public class AppUserDetails implements UserDetails {
 
   @Getter
   private final UUID userId;
   private final String email;
-  private final String passwordHash;
+  private final @Nullable String passwordHash;
   private final boolean enabled;
   private final Collection<? extends GrantedAuthority> authorities;
 
   public AppUserDetails(UUID userId,
                         String email,
-                        String passwordHash,
+                        @Nullable String passwordHash,
                         boolean enabled,
                         Collection<? extends GrantedAuthority> authorities) {
     this.userId = userId;
@@ -35,12 +37,12 @@ public class AppUserDetails implements UserDetails {
   }
 
   @Override
-  public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
+  public Collection<? extends GrantedAuthority> getAuthorities() {
     return authorities;
   }
 
   @Override
-  public String getPassword() {
+  public @Nullable String getPassword() {
     return passwordHash;
   }
 

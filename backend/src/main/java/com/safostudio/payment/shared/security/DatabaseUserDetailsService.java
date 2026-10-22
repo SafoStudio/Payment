@@ -5,7 +5,7 @@ import com.safostudio.payment.user.domain.UserStatus;
 import com.safostudio.payment.user.repository.RoleRepository;
 import com.safostudio.payment.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@NullMarked
 @Service
 @RequiredArgsConstructor
 public class DatabaseUserDetailsService implements UserDetailsService {
@@ -26,7 +27,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
   private final RoleRepository roleRepository;
 
   @Override
-  public UserDetails loadUserByUsername(@NonNull String email) throws UsernameNotFoundException {
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
