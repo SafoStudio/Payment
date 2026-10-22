@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.safostudio.payment.wallet.dto.TransferRequest;
-import com.safostudio.payment.wallet.dto.TransactionResponse;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -124,38 +122,6 @@ public class WalletService {
     return walletRepository.findAllUserWallets().stream()
             .map(WalletResponse::fromDomain)
             .toList();
-  }
-
-  @Transactional
-  public TransactionResponse transferFunds(UUID fromWalletId, UUID toWalletId,
-                                           BigDecimal amount, String currency,
-                                           String idempotencyKey, String description) {
-
-    Wallet fromWallet = findWalletById(fromWalletId);
-    Wallet toWallet = findWalletById(toWalletId);
-
-    validateUserForWallet(fromWallet.getUserId());
-    validateUserForWallet(toWallet.getUserId());
-
-    TransferRequest request = TransferRequest.builder()
-            .fromWalletId(fromWalletId)
-            .toWalletId(toWalletId)
-            .amount(amount)
-            .currency(currency)
-            .idempotencyKey(idempotencyKey)
-            .description(description)
-            .build();
-
-    return transferService.transfer(request);
-  }
-
-  @Transactional(readOnly = true)
-  public BigDecimal getTotalBalanceByUserId(UUID userId) {
-    if (!userRepository.existsById(userId)) {
-      throw BusinessException.userNotFound(userId);
-    }
-
-    return walletRepository.getTotalBalanceByUserId(userId);
   }
 
   private Wallet findWalletById(UUID walletId) {

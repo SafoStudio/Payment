@@ -78,7 +78,7 @@ public class UserService {
   public UserResponse getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null || !(authentication.getPrincipal() instanceof AppUserDetails principal)) {
-      throw BusinessException.userNotFound(null);
+      throw new IllegalStateException("getCurrentUser called without authenticated AppUserDetails principal");
     }
 
     User user = findUserById(principal.getUserId());
@@ -87,6 +87,9 @@ public class UserService {
     List<String> permissions = new ArrayList<>();
     for (GrantedAuthority authority : principal.getAuthorities()) {
       String code = authority.getAuthority();
+      if (code == null) {
+        continue;
+      }
       if (code.startsWith("ROLE_")) {
         roleCodes.add(code.substring("ROLE_".length()));
       } else {

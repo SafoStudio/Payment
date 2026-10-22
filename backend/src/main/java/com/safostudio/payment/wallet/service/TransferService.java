@@ -1,21 +1,20 @@
 package com.safostudio.payment.wallet.service;
 
-import tools.jackson.databind.json.JsonMapper;
 import com.safostudio.payment.fee.domain.Fee;
+import com.safostudio.payment.fee.dto.CalculateFeeRequest;
 import com.safostudio.payment.fee.service.FeeCalculator;
 import com.safostudio.payment.fee.service.FeeService;
-import com.safostudio.payment.fee.dto.CalculateFeeRequest;
 import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
+import com.safostudio.payment.ledger.transaction.domain.Transaction;
+import com.safostudio.payment.ledger.transaction.repository.TransactionRepository;
 import com.safostudio.payment.shared.config.SystemWalletsProperties;
 import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.util.MoneyUtils;
-import com.safostudio.payment.ledger.transaction.domain.Transaction;
 import com.safostudio.payment.wallet.domain.Wallet;
-import com.safostudio.payment.ledger.transaction.repository.TransactionRepository;
-import com.safostudio.payment.wallet.repository.WalletRepository;
 import com.safostudio.payment.wallet.dto.TopUpRequest;
 import com.safostudio.payment.wallet.dto.TransactionResponse;
 import com.safostudio.payment.wallet.dto.TransferRequest;
+import com.safostudio.payment.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,17 +25,18 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransferService {
 
+  private static final String OPERATION_TRANSFER = "TRANSFER";
+  private static final String OPERATION_TOP_UP = "TOP_UP";
+
   private final WalletRepository walletRepository;
   private final TransactionRepository transactionRepository;
   private final IdempotencyService idempotencyService;
-  private final JsonMapper jsonMapper;
   private final FeeCalculator feeCalculator;
   private final FeeService feeService;
   private final SystemWalletsProperties systemWalletsProperties;
@@ -45,7 +45,6 @@ public class TransferService {
   public TransactionResponse transfer(TransferRequest request) {
     validateTransferRequest(request);
 
-    String operation = "TRANSFER";
     String key = request.getIdempotencyKey();
     String fingerprint = idempotencyService.fingerprint(new TransferFingerprint(
             request.getFromWalletId(),
@@ -54,10 +53,10 @@ public class TransferService {
             request.getCurrency()
     ));
 
-    IdempotencyService.Result idem = idempotencyService.tryStart(operation, key, fingerprint);
+    IdempotencyService.Result idem = idempotencyService.tryStart(OPERATION_TRANSFER, key, fingerprint);
     switch (idem.outcome()) {
       case REPLAY -> {
-        return deserialize(idem.response(), TransactionResponse.class);
+        return replayTransaction(idem.response(), key);
       }
       case IN_PROGRESS -> throw BusinessException.idempotencyInProgress(key);
       case MISMATCH -> throw BusinessException.idempotencyKeyReuse(key);
@@ -92,66 +91,10 @@ public class TransferService {
       savedTransaction.complete();
       transactionRepository.save(savedTransaction);
 
-      CalculateFeeRequest feeRequest = CalculateFeeRequest.builder()
-              .transactionType("TRANSFER")
-              .amount(request.getAmount())
-              .currency(request.getCurrency())
-              .fromWalletId(request.getFromWalletId())
-              .toWalletId(request.getToWalletId())
-              .build();
-
-      List<Fee> fees = feeCalculator.calculateFees(feeRequest);
-
-      List<Fee> feesWithTransaction = new ArrayList<>(fees.size());
-      for (Fee fee : fees) {
-        Fee feeWithTransaction = Fee.builder()
-                .transactionId(savedTransaction.getId())
-                .fromWalletId(fee.getFromWalletId())
-                .toWalletId(fee.getToWalletId())
-                .amount(fee.getAmount())
-                .currency(fee.getCurrency())
-                .type(fee.getType())
-                .percentage(fee.getPercentage())
-                .fixedAmount(fee.getFixedAmount())
-                .calculationRule(fee.getCalculationRule())
-                .createdAt(Instant.now())
-                .build();
-
-        feesWithTransaction.add(feeWithTransaction);
-
-        if (fee.getFromWalletId() != null) {
-          Wallet feeWallet = walletRepository.findById(fee.getFromWalletId())
-                  .orElseThrow(() -> BusinessException.walletNotFound(fee.getFromWalletId()));
-          feeWallet.debit(fee.getAmount());
-          walletRepository.save(feeWallet);
-        }
-
-        if (fee.getToWalletId() != null) {
-          Wallet feeToWallet = walletRepository.findById(fee.getToWalletId())
-                  .orElseThrow(() -> BusinessException.walletNotFound(fee.getToWalletId()));
-          feeToWallet.credit(fee.getAmount());
-          walletRepository.save(feeToWallet);
-        }
-
-        if (fee.getFromWalletId() != null && fee.getToWalletId() != null) {
-          Transaction feeTransaction = Transaction.createTransfer(
-                  fee.getFromWalletId(),
-                  fee.getToWalletId(),
-                  fee.getAmount(),
-                  fee.getCurrency(),
-                  "Fee for transaction: " + savedTransaction.getId()
-          );
-          feeTransaction.complete();
-          transactionRepository.save(feeTransaction);
-        }
-      }
-
-      if (!feesWithTransaction.isEmpty()) {
-        feeService.saveAll(feesWithTransaction);
-      }
+      applyFees(savedTransaction, request);
 
       TransactionResponse response = TransactionResponse.fromDomain(savedTransaction);
-      idempotencyService.complete(operation, key, response);
+      idempotencyService.complete(OPERATION_TRANSFER, key, savedTransaction.getId().toString());
       return response;
 
     } catch (BusinessException e) {
@@ -167,7 +110,6 @@ public class TransferService {
     MoneyUtils.validateAmount(request.getAmount());
     MoneyUtils.validateCurrency(request.getCurrency());
 
-    String operation = "TOP_UP";
     String key = request.getIdempotencyKey();
     String fingerprint = idempotencyService.fingerprint(new TopUpFingerprint(
             request.getWalletId(),
@@ -175,10 +117,10 @@ public class TransferService {
             request.getCurrency()
     ));
 
-    IdempotencyService.Result idem = idempotencyService.tryStart(operation, key, fingerprint);
+    IdempotencyService.Result idem = idempotencyService.tryStart(OPERATION_TOP_UP, key, fingerprint);
     switch (idem.outcome()) {
       case REPLAY -> {
-        return deserialize(idem.response(), TransactionResponse.class);
+        return replayTransaction(idem.response(), key);
       }
       case IN_PROGRESS -> throw BusinessException.idempotencyInProgress(key);
       case MISMATCH -> throw BusinessException.idempotencyKeyReuse(key);
@@ -213,7 +155,7 @@ public class TransferService {
       transactionRepository.save(savedTransaction);
 
       TransactionResponse response = TransactionResponse.fromDomain(savedTransaction);
-      idempotencyService.complete(operation, key, response);
+      idempotencyService.complete(OPERATION_TOP_UP, key, savedTransaction.getId().toString());
       return response;
 
     } catch (BusinessException e) {
@@ -224,10 +166,96 @@ public class TransferService {
     }
   }
 
+  private TransactionResponse replayTransaction(String response, String key) {
+    UUID transactionId;
+    try {
+      transactionId = UUID.fromString(response);
+    } catch (IllegalArgumentException e) {
+      throw BusinessException.internalError("Invalid idempotency response for key: " + key);
+    }
+
+    return transactionRepository.findById(transactionId)
+            .map(TransactionResponse::fromDomain)
+            .orElseThrow(() -> BusinessException.internalError(
+                    "Transaction not found for idempotency key: " + key));
+  }
+
+  private void applyFees(Transaction parentTransaction, TransferRequest request) {
+    CalculateFeeRequest feeRequest = CalculateFeeRequest.builder()
+            .transactionType("TRANSFER")
+            .amount(request.getAmount())
+            .currency(request.getCurrency())
+            .fromWalletId(request.getFromWalletId())
+            .toWalletId(request.getToWalletId())
+            .build();
+
+    List<Fee> fees = feeCalculator.calculateFees(feeRequest);
+    if (fees.isEmpty()) {
+      return;
+    }
+
+    List<Fee> feesWithTransaction = new ArrayList<>(fees.size());
+    for (Fee fee : fees) {
+      feesWithTransaction.add(withParentTransaction(fee, parentTransaction.getId()));
+      applyFeeToWallets(fee);
+      createFeeTransaction(fee, parentTransaction);
+    }
+
+    feeService.saveAll(feesWithTransaction);
+  }
+
+  private Fee withParentTransaction(Fee fee, UUID parentTransactionId) {
+    return Fee.builder()
+            .transactionId(parentTransactionId)
+            .fromWalletId(fee.getFromWalletId())
+            .toWalletId(fee.getToWalletId())
+            .amount(fee.getAmount())
+            .currency(fee.getCurrency())
+            .type(fee.getType())
+            .percentage(fee.getPercentage())
+            .fixedAmount(fee.getFixedAmount())
+            .calculationRule(fee.getCalculationRule())
+            .createdAt(Instant.now())
+            .build();
+  }
+
+  private void applyFeeToWallets(Fee fee) {
+    if (fee.getFromWalletId() != null) {
+      Wallet from = walletRepository.findById(fee.getFromWalletId())
+              .orElseThrow(() -> BusinessException.walletNotFound(fee.getFromWalletId()));
+      from.debit(fee.getAmount());
+      walletRepository.save(from);
+    }
+    if (fee.getToWalletId() != null) {
+      Wallet to = walletRepository.findById(fee.getToWalletId())
+              .orElseThrow(() -> BusinessException.walletNotFound(fee.getToWalletId()));
+      to.credit(fee.getAmount());
+      walletRepository.save(to);
+    }
+  }
+
+  private void createFeeTransaction(Fee fee, Transaction parentTransaction) {
+    if (fee.getFromWalletId() == null || fee.getToWalletId() == null) {
+      return;
+    }
+    Transaction feeTransaction = Transaction.createTransfer(
+            fee.getFromWalletId(),
+            fee.getToWalletId(),
+            fee.getAmount(),
+            fee.getCurrency(),
+            "Fee for transaction: " + parentTransaction.getId()
+    );
+    feeTransaction.complete();
+    transactionRepository.save(feeTransaction);
+  }
+
   private void validateTransferRequest(TransferRequest request) {
     MoneyUtils.validateAmount(request.getAmount());
     MoneyUtils.validateCurrency(request.getCurrency());
 
+    if (request.getFromWalletId() == null || request.getToWalletId() == null) {
+      throw BusinessException.validationError("Wallet IDs must not be null for transfer");
+    }
     if (request.getFromWalletId().equals(request.getToWalletId())) {
       throw BusinessException.sameWallet();
     }
@@ -273,15 +301,7 @@ public class TransferService {
 
     return transactionRepository.findRecentTransactions(walletId, limit).stream()
             .map(TransactionResponse::fromDomain)
-            .collect(Collectors.toList());
-  }
-
-  private <T> T deserialize(String json, Class<T> type) {
-    try {
-      return jsonMapper.readValue(json, type);
-    } catch (Exception e) {
-      throw BusinessException.internalError("Failed to deserialize idempotent response");
-    }
+            .toList();
   }
 
   private record TransferFingerprint(UUID fromWalletId, UUID toWalletId, BigDecimal amount, String currency) {}

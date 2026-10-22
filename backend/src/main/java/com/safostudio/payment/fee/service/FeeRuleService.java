@@ -7,15 +7,14 @@ import com.safostudio.payment.fee.domain.FeeType;
 import com.safostudio.payment.fee.repository.FeeRuleRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FeeRuleService {
@@ -24,13 +23,13 @@ public class FeeRuleService {
 
   @Transactional(readOnly = true)
   public List<FeeRule> findAll() {
-    return (List<FeeRule>) feeRuleRepository.findAll();
+    return StreamSupport.stream(feeRuleRepository.findAll().spliterator(), false)
+            .toList();
   }
 
   @Transactional(readOnly = true)
   public FeeRule findById(UUID id) {
-    return feeRuleRepository.findById(id)
-            .orElseThrow(() -> BusinessException.feeRuleNotFound(id));
+    return findByIdInternal(id);
   }
 
   @Transactional(readOnly = true)
@@ -52,7 +51,7 @@ public class FeeRuleService {
             .currency(input.currency())
             .fromWalletId(input.fromWalletId())
             .toWalletId(input.toWalletId())
-            .isActive(input.isActive() != null ? input.isActive() : true)
+            .isActive(input.isActive() == null || input.isActive())
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();
@@ -62,7 +61,7 @@ public class FeeRuleService {
 
   @Transactional
   public FeeRule update(UpdateFeeRuleInput input) {
-    FeeRule existing = findById(input.id());
+    FeeRule existing = findByIdInternal(input.id());
 
     FeeRule.FeeRuleBuilder builder = existing.toBuilder();
 
@@ -89,6 +88,11 @@ public class FeeRuleService {
       return true;
     }
     return false;
+  }
+
+  private FeeRule findByIdInternal(UUID id) {
+    return feeRuleRepository.findById(id)
+            .orElseThrow(() -> BusinessException.feeRuleNotFound(id));
   }
 
   private FeeType parseFeeType(String feeType) {

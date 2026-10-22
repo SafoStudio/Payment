@@ -1,52 +1,20 @@
 package com.safostudio.payment.fee.service;
 
 import com.safostudio.payment.fee.domain.Fee;
-import com.safostudio.payment.fee.repository.FeeRepository;
-import com.safostudio.payment.fee.dto.CalculateFeeRequest;
 import com.safostudio.payment.fee.dto.FeeResponse;
+import com.safostudio.payment.fee.repository.FeeRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FeeService {
 
   private final FeeRepository feeRepository;
-  private final FeeCalculator feeCalculator;
-
-  @Transactional
-  public List<FeeResponse> processTransactionFees(UUID transactionId, CalculateFeeRequest request) {
-    List<Fee> fees = feeCalculator.calculateFees(request);
-
-    List<Fee> feesWithTransaction = fees.stream()
-            .map(fee -> Fee.builder()
-                    .id(fee.getId())
-                    .transactionId(transactionId)
-                    .fromWalletId(fee.getFromWalletId())
-                    .toWalletId(fee.getToWalletId())
-                    .amount(fee.getAmount())
-                    .currency(fee.getCurrency())
-                    .type(fee.getType())
-                    .percentage(fee.getPercentage())
-                    .fixedAmount(fee.getFixedAmount())
-                    .calculationRule(fee.getCalculationRule())
-                    .createdAt(fee.getCreatedAt())
-                    .build())
-            .toList();
-
-    feeRepository.saveAll(feesWithTransaction);
-
-    return feesWithTransaction.stream()
-            .map(FeeResponse::from)
-            .toList();
-  }
 
   @Transactional
   public FeeResponse saveFee(Fee fee) {
@@ -55,9 +23,8 @@ public class FeeService {
   }
 
   @Transactional
-  public List<Fee> saveAll(List<Fee> fees) {
-    return StreamSupport.stream(feeRepository.saveAll(fees).spliterator(), false)
-            .toList();
+  public void saveAll(List<Fee> fees) {
+    feeRepository.saveAll(fees);
   }
 
   @Transactional(readOnly = true)
