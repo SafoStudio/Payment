@@ -2,6 +2,7 @@ package com.safostudio.payment.auth.api;
 
 import com.safostudio.payment.auth.dto.RegisterRequest;
 import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.user.domain.Role;
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.user.domain.UserStatus;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -78,9 +80,19 @@ public class RegistrationController {
     User saved = userRepository.save(user);
     userRoleRepository.assignRole(saved.getId(), merchantRole.getId());
 
-    var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + merchantRole.getCode()));
+    List<GrantedAuthority> authorities =
+            List.of(new SimpleGrantedAuthority("ROLE_" + merchantRole.getCode()));
+
+    AppUserDetails principal = new AppUserDetails(
+            saved.getId(),
+            saved.getEmail(),
+            null,
+            true,
+            authorities
+    );
+
     var authentication = UsernamePasswordAuthenticationToken.authenticated(
-            saved.getEmail(), null, authorities);
+            principal, null, authorities);
 
     SecurityContext context = securityContextHolderStrategy.createEmptyContext();
     context.setAuthentication(authentication);

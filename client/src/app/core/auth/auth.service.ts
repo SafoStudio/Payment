@@ -1,18 +1,11 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import { gqlClient } from '../graphql/client';
 import { MeDocument } from '../graphql/graphql';
-import { toAppError, type AppError } from '../graphql/error-handler';
+import { AppError, toAppError } from '../graphql/error-handler';
 
 export interface AppUser {
   id: string;
-  email: string;
-  roles: string[];
-  permissions: string[];
-  hasPasskey: boolean;
-}
-
-interface LoginResponse {
-  userId: string;
   email: string;
   roles: string[];
   permissions: string[];
@@ -74,6 +67,100 @@ export class AuthService {
     this._loading.set(false);
   }
 
+  async loginWithPasskey(email: string): Promise<void> {
+    const optionsResponse = await fetch('/webauthn/authenticate/options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ username: email }),
+    });
+
+    if (!optionsResponse.ok) {
+      const body = await optionsResponse.json().catch(() => ({}));
+      const message = typeof body?.error === 'string' ? body.error : 'Passkey login failed';
+      throw new AppError('UNAUTHENTICATED', message);
+    }
+
+    const optionsJSON = await optionsResponse.json();
+
+    let credential;
+    try {
+      credential = await startAuthentication({ optionsJSON });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Passkey authentication cancelled';
+      throw new AppError('UNAUTHENTICATED', message);
+    }
+
+    const payload = {
+      ...credential,
+      clientExtensionResults: undefined,
+      response: {
+        ...credential.response,
+        transports: undefined,
+      },
+    };
+
+    const verifyResponse = await fetch('/login/webauthn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    if (!verifyResponse.ok) {
+      const body = await verifyResponse.json().catch(() => ({}));
+      const message = typeof body?.error === 'string' ? body.error : 'Passkey verification failed';
+      throw new AppError('UNAUTHENTICATED', message);
+    }
+
+    await this.loadSession();
+  }
+
+  async enrollPasskey(): Promise<void> {
+    const optionsResponse = await fetch('/webauthn/register/options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!optionsResponse.ok) {
+      const body = await optionsResponse.json().catch(() => ({}));
+      const message = typeof body?.error === 'string' ? body.error : 'Failed to get registration options';
+      throw new AppError('UNKNOWN', message);
+    }
+
+    const optionsJSON = await optionsResponse.json();
+
+    let credential;
+    try {
+      credential = await startRegistration({ optionsJSON });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Passkey registration cancelled';
+      throw new AppError('UNKNOWN', message);
+    }
+
+    const verifyResponse = await fetch('/webauthn/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        publicKey: {
+          credential: credential,
+          label: 'My Passkey',
+        },
+      }),
+    });
+
+    if (!verifyResponse.ok) {
+      const body = await verifyResponse.json().catch(() => ({}));
+      const message = typeof body?.error === 'string' ? body.error : 'Passkey registration failed';
+      throw new AppError('UNKNOWN', message);
+    }
+
+    await fetch('/auth/passkey-enrolled', { method: 'POST', credentials: 'include' });
+    await this.loadSession();
+  }
+
   async loginWithPassword(email: string, password: string): Promise<void> {
     const response = await fetch('/auth/login', {
       method: 'POST',
@@ -85,10 +172,10 @@ export class AuthService {
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       const message = typeof body?.error === 'string' ? body.error : 'Login failed';
-      throw {
-        type: response.status === 401 ? 'UNAUTHENTICATED' : 'UNKNOWN',
+      throw new AppError(
+        response.status === 401 ? 'UNAUTHENTICATED' : 'UNKNOWN',
         message,
-      } satisfies AppError;
+      );
     }
 
     await this.loadSession();

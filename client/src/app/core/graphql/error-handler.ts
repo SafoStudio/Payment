@@ -8,19 +8,27 @@ export type AppErrorType =
   | 'NETWORK'
   | 'UNKNOWN';
 
-export interface AppError {
-  type: AppErrorType;
-  message: string;
-  code?: string;
+export class AppError extends Error {
+  readonly type: AppErrorType;
+  readonly code?: string;
+
+  constructor(type: AppErrorType, message: string, code?: string) {
+    super(message);
+    this.name = 'AppError';
+    this.type = type;
+    if (code !== undefined) {
+      this.code = code;
+    }
+  }
 }
 
 export function toAppError(error: unknown): AppError {
   if (error instanceof CombinedError) {
     if (error.networkError) {
-      return {
-        type: 'NETWORK',
-        message: 'Network error. Check your connection and try again.',
-      };
+      return new AppError(
+        'NETWORK',
+        'Network error. Check your connection and try again.',
+      );
     }
 
     const first = error.graphQLErrors[0];
@@ -29,10 +37,15 @@ export function toAppError(error: unknown): AppError {
     }
   }
 
-  return {
-    type: 'UNKNOWN',
-    message: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
-  };
+  if (error instanceof AppError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return new AppError('UNKNOWN', error.message);
+  }
+
+  return new AppError('UNKNOWN', 'Something went wrong. Please try again.');
 }
 
 function fromGraphQLError(error: GraphQLError): AppError {
@@ -40,14 +53,11 @@ function fromGraphQLError(error: GraphQLError): AppError {
   const code = error.extensions?.['code'];
   const type = mapClassification(classification);
 
-  const result: AppError = {
+  return new AppError(
     type,
-    message: pickMessage(type, error.message),
-  };
-  if (typeof code === 'string') {
-    result.code = code;
-  }
-  return result;
+    pickMessage(type, error.message),
+    typeof code === 'string' ? code : undefined,
+  );
 }
 
 function mapClassification(value: unknown): AppErrorType {
