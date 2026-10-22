@@ -1,6 +1,6 @@
-package com.safostudio.payment.auth.api;
+package com.safostudio.payment.user.auth.api;
 
-import com.safostudio.payment.auth.dto.LoginRequest;
+import com.safostudio.payment.user.auth.dto.LoginRequest;
 import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.user.dto.UserResponse;
 import com.safostudio.payment.user.service.UserService;

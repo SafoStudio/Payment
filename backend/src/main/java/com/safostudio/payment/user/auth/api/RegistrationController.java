@@ -1,6 +1,6 @@
-package com.safostudio.payment.auth.api;
+package com.safostudio.payment.user.auth.api;
 
-import com.safostudio.payment.auth.dto.RegisterRequest;
+import com.safostudio.payment.user.auth.dto.RegisterRequest;
 import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.user.domain.Role;

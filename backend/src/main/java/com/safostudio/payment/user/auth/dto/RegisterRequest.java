@@ -1,4 +1,4 @@
-package com.safostudio.payment.auth.dto;
+package com.safostudio.payment.user.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

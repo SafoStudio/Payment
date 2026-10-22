@@ -1,4 +1,4 @@
-package com.safostudio.payment.shared.config;
+package com.safostudio.payment.user.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

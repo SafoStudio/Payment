@@ -1,4 +1,4 @@
-package com.safostudio.payment.auth.api;
+package com.safostudio.payment.user.auth.api;
 
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.user.repository.UserRepository;

@@ -1,4 +1,4 @@
-package com.safostudio.payment.auth.api;
+package com.safostudio.payment.user.auth.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
