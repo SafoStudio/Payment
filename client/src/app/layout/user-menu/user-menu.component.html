@@ -1,0 +1,13 @@
+@if (user(); as u) {
+<div class="user-menu">
+  <span class="user-menu__email" [title]="u.email">{{ u.email }}</span>
+  <button
+    type="button"
+    class="user-menu__logout"
+    (click)="logout()"
+    [disabled]="busy()"
+  >
+    {{ busy() ? 'Signing out…' : 'Sign out' }}
+  </button>
+</div>
+}

@@ -1,0 +1,24 @@
+<header class="header">
+  <div class="header__brand">
+    <span class="header__brand-mark">PSP</span>
+    <span class="header__brand-name">Hub</span>
+  </div>
+
+  <div class="header__nav">
+    <app-nav-menu></app-nav-menu>
+  </div>
+
+  <div class="header__actions">
+    <button
+      type="button"
+      class="header__theme-toggle"
+      (click)="toggleTheme()"
+      [attr.aria-label]="isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+      [attr.aria-pressed]="isDark()"
+    >
+      {{ isDark() ? '☀' : '☾' }}
+    </button>
+
+    <app-user-menu></app-user-menu>
+  </div>
+</header>

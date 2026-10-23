@@ -1,0 +1,78 @@
+<div class="nav">
+  <button
+    type="button"
+    class="nav__burger"
+    (click)="toggleMobile()"
+    [attr.aria-expanded]="mobileOpen()"
+    aria-label="Toggle navigation"
+  >
+    <span class="nav__burger-line"></span>
+    <span class="nav__burger-line"></span>
+    <span class="nav__burger-line"></span>
+  </button>
+
+  <ul class="nav__list">
+    @for (item of items; track item.id) {
+    <li class="nav__item">
+      @if (item.sections) {
+      <div
+        class="nav__wrap"
+        [class.nav__wrap--open]="activeMenu() === item.id"
+        (mouseenter)="onMenuEnter(item.id)"
+        (mouseleave)="onMenuLeave()"
+      >
+        <button
+          type="button"
+          class="nav__link nav__link--button"
+          [class.nav__link--active]="activeMenu() === item.id"
+          (click)="onItemClick(item)"
+        >
+          <span class="nav__icon" aria-hidden="true">{{ item.icon }}</span>
+          <span class="nav__label">{{ item.label }}</span>
+        </button>
+
+        @if (activeMenu() === item.id) {
+        <div class="nav__mega">
+          <div class="nav__mega-inner">
+            @for (section of item.sections; track section.title) {
+            <div class="nav__mega-section">
+              @if (!section.hideTitle) {
+              <div class="nav__mega-title">{{ section.title }}</div>
+              }
+              <div class="nav__mega-links">
+                @for (link of section.links; track link.label) {
+                <a
+                  class="nav__mega-link"
+                  [routerLink]="link.link"
+                  (click)="closeMenu()"
+                >
+                  {{ link.label }}
+                </a>
+                }
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <a
+        class="nav__link"
+        [routerLink]="item.link"
+        routerLinkActive="nav__link--active"
+        (click)="closeMenu()"
+      >
+        <span class="nav__icon" aria-hidden="true">{{ item.icon }}</span>
+        <span class="nav__label">{{ item.label }}</span>
+      </a>
+      }
+    </li>
+    }
+  </ul>
+
+  <app-mob-menu
+    [open]="mobileOpen()"
+    [items]="items"
+    (closed)="closeMobile()"></app-mob-menu>
+</div>

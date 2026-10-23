@@ -1,0 +1,76 @@
+<div class="mob" [class.mob--open]="open()">
+  <button
+    type="button"
+    class="mob__backdrop"
+    (click)="onClose()"
+    aria-label="Close navigation"
+    tabindex="-1"
+  ></button>
+
+  <aside class="mob__panel" aria-label="Navigation">
+    <div class="mob__header">
+      <span class="mob__brand">PSP Hub</span>
+      <button
+        type="button"
+        class="mob__close"
+        (click)="onClose()"
+        aria-label="Close navigation"
+      >
+        ✕
+      </button>
+    </div>
+
+    <nav class="mob__nav">
+      @for (item of items(); track item.id) {
+      @if (item.sections) {
+      <div class="mob__group">
+        <button
+          type="button"
+          class="mob__group-title"
+          [class.mob__group-title--open]="expanded() === item.id"
+          (click)="toggleExpand(item.id)"
+          [attr.aria-expanded]="expanded() === item.id"
+        >
+              <span class="mob__group-label">
+                <span class="mob__icon" aria-hidden="true">{{ item.icon }}</span>
+                {{ item.label }}
+              </span>
+          <span class="mob__chevron" aria-hidden="true">›</span>
+        </button>
+
+        @if (expanded() === item.id) {
+        <div class="mob__sub">
+          @for (section of item.sections; track section.title) {
+          <div class="mob__sub-section">
+            @if (!section.hideTitle) {
+            <div class="mob__sub-title">{{ section.title }}</div>
+            }
+            @for (link of section.links; track link.label) {
+            <a
+              class="mob__sub-link"
+              [routerLink]="link.link"
+              (click)="onClose()"
+            >
+              {{ link.label }}
+            </a>
+            }
+          </div>
+          }
+        </div>
+        }
+      </div>
+      } @else {
+      <a
+        class="mob__link"
+        [routerLink]="item.link"
+        routerLinkActive="mob__link--active"
+        (click)="onClose()"
+      >
+        <span class="mob__icon" aria-hidden="true">{{ item.icon }}</span>
+        {{ item.label }}
+      </a>
+      }
+      }
+    </nav>
+  </aside>
+</div>
