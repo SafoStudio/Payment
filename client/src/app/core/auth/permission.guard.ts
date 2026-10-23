@@ -1,8 +1,8 @@
 import { inject } from '@angular/core';
 import { Router, type CanActivateFn } from '@angular/router';
-import { AuthService } from './auth.service';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { firstValueFrom, filter } from 'rxjs';
+import { AuthService } from './auth.service';
 
 export function permissionGuard(requiredPermission: string): CanActivateFn {
   return async () => {
@@ -16,7 +16,7 @@ export function permissionGuard(requiredPermission: string): CanActivateFn {
     }
 
     if (!auth.isAuthenticated()) {
-      return router.createUrlTree(['/login']);
+      return router.createUrlTree(['/auth']);
     }
 
     if (!auth.hasPermission(requiredPermission)) {

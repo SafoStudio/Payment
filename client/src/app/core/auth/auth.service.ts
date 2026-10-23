@@ -42,29 +42,36 @@ export class AuthService {
     this._loading.set(true);
     this._lastError.set(null);
 
-    const result = await gqlClient
-      .query(MeDocument, {}, { requestPolicy: 'network-only' })
-      .toPromise();
+    try {
+      const result = await gqlClient
+        .query(MeDocument, {}, { requestPolicy: 'network-only' })
+        .toPromise();
 
-    if (result.error) {
-      const appError = toAppError(result.error);
-      if (appError.type !== 'UNAUTHENTICATED') {
-        this._lastError.set(appError);
+      if (result.error) {
+        const appError = toAppError(result.error);
+        if (appError.type !== 'UNAUTHENTICATED') {
+          this._lastError.set(appError);
+        }
+        this._user.set(null);
+      } else if (result.data?.me) {
+        this._user.set({
+          id: result.data.me.id,
+          email: result.data.me.email,
+          roles: result.data.me.roles,
+          permissions: result.data.me.permissions,
+          hasPasskey: result.data.me.hasPasskey ?? false,
+        });
+      } else {
+        this._user.set(null);
       }
+    } catch (e) {
+      // Network/transport error before urql wraps it into result.error.
+      // Treat as unauthenticated view but surface as error to callers that care.
+      this._lastError.set(toAppError(e));
       this._user.set(null);
-    } else if (result.data?.me) {
-      this._user.set({
-        id: result.data.me.id,
-        email: result.data.me.email,
-        roles: result.data.me.roles,
-        permissions: result.data.me.permissions,
-        hasPasskey: result.data.me.hasPasskey ?? false,
-      });
-    } else {
-      this._user.set(null);
+    } finally {
+      this._loading.set(false);
     }
-
-    this._loading.set(false);
   }
 
   async loginWithPasskey(email: string): Promise<void> {
