@@ -12,7 +12,7 @@ import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.wallet.domain.Wallet;
 import com.safostudio.payment.wallet.dto.TopUpRequest;
-import com.safostudio.payment.wallet.dto.TransactionResponse;
+import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
 import com.safostudio.payment.wallet.dto.TransferRequest;
 import com.safostudio.payment.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;

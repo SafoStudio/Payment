@@ -4,7 +4,7 @@ import com.safostudio.payment.wallet.api.input.TopUpInput;
 import com.safostudio.payment.wallet.api.input.TransferInput;
 import com.safostudio.payment.wallet.service.TransferService;
 import com.safostudio.payment.wallet.dto.TopUpRequest;
-import com.safostudio.payment.wallet.dto.TransactionResponse;
+import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
 import com.safostudio.payment.wallet.dto.TransferRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
