@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/auth/auth.guard';
+import { permissionGuard } from '@core/auth/permission.guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,26 @@ export const routes: Routes = [
           import('@features/dashboard/dashboard-page.component').then(
             (m) => m.DashboardPageComponent,
           ),
+      },
+      {
+        path: 'wallets',
+        canActivate: [permissionGuard(['wallet:manage:own', 'wallet:read:all'])],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('@features/wallets/wallets-page.component').then(
+                (m) => m.WalletsPageComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/wallets/wallet-detail/wallet-detail-page.component'
+              ).then((m) => m.WalletDetailPageComponent),
+          },
+        ],
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],

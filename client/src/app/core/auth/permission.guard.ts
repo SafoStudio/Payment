@@ -4,7 +4,12 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { firstValueFrom, filter } from 'rxjs';
 import { AuthService } from './auth.service';
 
-export function permissionGuard(requiredPermission: string): CanActivateFn {
+export function permissionGuard(
+  required: string | readonly string[],
+): CanActivateFn {
+  const requiredList: readonly string[] =
+    typeof required === 'string' ? [required] : required;
+
   return async () => {
     const auth = inject(AuthService);
     const router = inject(Router);
@@ -19,7 +24,7 @@ export function permissionGuard(requiredPermission: string): CanActivateFn {
       return router.createUrlTree(['/auth']);
     }
 
-    if (!auth.hasPermission(requiredPermission)) {
+    if (!auth.hasAnyPermission([...requiredList])) {
       return router.createUrlTree(['/forbidden']);
     }
 
