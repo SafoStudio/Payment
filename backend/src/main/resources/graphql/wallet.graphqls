@@ -1,7 +1,7 @@
 type Wallet {
     id: ID!
     userId: ID!
-    balance: Float!
+    balance: String!
     currency: String!
     status: WalletStatus!
     createdAt: String!
@@ -17,7 +17,7 @@ enum WalletStatus {
 input CreateWalletInput {
     userId: ID!
     currency: String!
-    initialBalance: Float
+    initialBalance: String
 }
 
 extend type Query {

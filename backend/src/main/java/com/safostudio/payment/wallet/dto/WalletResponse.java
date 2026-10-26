@@ -4,7 +4,6 @@ import com.safostudio.payment.wallet.domain.Wallet;
 import lombok.Builder;
 import lombok.Value;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,7 +13,7 @@ public class WalletResponse {
 
   UUID id;
   UUID userId;
-  BigDecimal balance;
+  String balance;
   String currency;
   String status;
   Instant createdAt;
@@ -24,7 +23,7 @@ public class WalletResponse {
     return WalletResponse.builder()
             .id(wallet.getId())
             .userId(wallet.getUserId())
-            .balance(wallet.getBalance())
+            .balance(wallet.getBalance().toPlainString())
             .currency(wallet.getCurrency())
             .status(wallet.getStatus().name())
             .createdAt(wallet.getCreatedAt())

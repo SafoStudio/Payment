@@ -5,7 +5,6 @@ import com.safostudio.payment.fee.domain.FeeType;
 import lombok.Builder;
 import lombok.Value;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -16,11 +15,11 @@ public class FeeResponse {
   UUID transactionId;
   UUID fromWalletId;
   UUID toWalletId;
-  BigDecimal amount;
+  String amount;
   String currency;
   FeeType type;
-  BigDecimal percentage;
-  BigDecimal fixedAmount;
+  String percentage;
+  String fixedAmount;
   String calculationRule;
   Instant createdAt;
 
@@ -30,13 +29,17 @@ public class FeeResponse {
             .transactionId(fee.getTransactionId())
             .fromWalletId(fee.getFromWalletId())
             .toWalletId(fee.getToWalletId())
-            .amount(fee.getAmount())
+            .amount(toPlain(fee.getAmount()))
             .currency(fee.getCurrency())
             .type(fee.getType())
-            .percentage(fee.getPercentage())
-            .fixedAmount(fee.getFixedAmount())
+            .percentage(toPlain(fee.getPercentage()))
+            .fixedAmount(toPlain(fee.getFixedAmount()))
             .calculationRule(fee.getCalculationRule())
             .createdAt(fee.getCreatedAt())
             .build();
+  }
+
+  private static String toPlain(java.math.BigDecimal value) {
+    return value != null ? value.toPlainString() : null;
   }
 }

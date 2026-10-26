@@ -1,7 +1,7 @@
 type Refund {
     id: ID!
     paymentId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     status: RefundStatus!
     reason: String
@@ -21,7 +21,7 @@ enum RefundStatus {
 
 input CreateRefundInput {
     paymentId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     reason: String
     idempotencyKey: String!

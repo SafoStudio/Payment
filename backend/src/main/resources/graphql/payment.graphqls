@@ -2,7 +2,7 @@ type Payment {
     id: ID!
     walletId: ID!
     targetWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     status: PaymentStatus!
     type: PaymentType!
@@ -33,7 +33,7 @@ enum PaymentType {
 input CreatePaymentInput {
     walletId: ID!
     targetWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     idempotencyKey: String!
     description: String

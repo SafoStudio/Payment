@@ -3,10 +3,10 @@ type Fee {
     transactionId: ID
     fromWalletId: ID!
     toWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     type: FeeType!
-    percentage: Float
+    percentage: String
     calculationRule: String
     createdAt: String!
 }
@@ -23,10 +23,10 @@ type FeeRule {
     name: String!
     transactionType: String!
     feeType: FeeType!
-    fixedAmount: Float
-    percentage: Float
-    minAmount: Float
-    maxAmount: Float
+    fixedAmount: String
+    percentage: String
+    minAmount: String
+    maxAmount: String
     currency: String
     fromWalletId: ID
     toWalletId: ID
@@ -39,10 +39,10 @@ input FeeInput {
     transactionId: ID
     fromWalletId: ID!
     toWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     type: String!
-    percentage: Float
+    percentage: String
     calculationRule: String
 }
 
@@ -50,10 +50,10 @@ input CreateFeeRuleInput {
     name: String!
     transactionType: String!
     feeType: FeeType!
-    fixedAmount: Float
-    percentage: Float
-    minAmount: Float
-    maxAmount: Float
+    fixedAmount: String
+    percentage: String
+    minAmount: String
+    maxAmount: String
     currency: String
     fromWalletId: ID
     toWalletId: ID
@@ -65,10 +65,10 @@ input UpdateFeeRuleInput {
     name: String
     transactionType: String
     feeType: FeeType
-    fixedAmount: Float
-    percentage: Float
-    minAmount: Float
-    maxAmount: Float
+    fixedAmount: String
+    percentage: String
+    minAmount: String
+    maxAmount: String
     currency: String
     fromWalletId: ID
     toWalletId: ID

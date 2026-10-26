@@ -2,7 +2,7 @@ type Transaction {
     id: ID!
     debitWalletId: ID!
     creditWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     type: TransactionType!
     status: TransactionStatus!
@@ -28,7 +28,7 @@ enum TransactionStatus {
 input TransferInput {
     fromWalletId: ID!
     toWalletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     description: String
     idempotencyKey: String!
@@ -36,7 +36,7 @@ input TransferInput {
 
 input TopUpInput {
     walletId: ID!
-    amount: Float!
+    amount: String!
     currency: String!
     description: String
     idempotencyKey: String!
