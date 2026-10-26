@@ -14,6 +14,7 @@ export interface NavItem {
   id: string;
   label: string;
   icon: string;
+  permissions: readonly string[];
   link?: string;
   sections?: NavSection[];
 }
@@ -23,12 +24,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: '⊞',
+    permissions: ['dashboard:read'],
     link: '/dashboard',
   },
   {
     id: 'payments',
     label: 'Payments',
     icon: '⇄',
+    permissions: ['payment:manage:own', 'payment:read:all'],
     sections: [
       {
         title: 'Overview',
@@ -46,6 +49,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'wallets',
     label: 'Wallets',
     icon: '◈',
+    permissions: ['wallet:manage:own', 'wallet:read:all'],
     sections: [
       {
         title: 'Balances',
@@ -63,6 +67,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'providers',
     label: 'Providers',
     icon: '⇋',
+    permissions: ['provider:read:own', 'provider:manage:all'],
     sections: [
       {
         title: 'Connected',
@@ -85,6 +90,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'developers',
     label: 'Developers',
     icon: '⌘',
+    permissions: ['developer:read:own'],
     sections: [
       {
         title: 'Integration',
@@ -108,6 +114,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'admin',
     label: 'Admin',
     icon: '☰',
+    permissions: ['user:manage:all', 'role:manage:all', 'merchant:manage:all'],
     sections: [
       {
         title: 'Platform',
@@ -131,6 +138,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'settings',
     label: 'Settings',
     icon: '⚙',
+    permissions: ['user:read:own'],
     link: '/dashboard',
   },
 ];

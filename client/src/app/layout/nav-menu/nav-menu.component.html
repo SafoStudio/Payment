@@ -12,7 +12,7 @@
   </button>
 
   <ul class="nav__list">
-    @for (item of items; track item.id) {
+    @for (item of items(); track item.id) {
     <li class="nav__item">
       @if (item.sections) {
       <div
@@ -73,6 +73,6 @@
 
   <app-mob-menu
     [open]="mobileOpen()"
-    [items]="items"
+    [items]="items()"
     (closed)="closeMobile()"></app-mob-menu>
 </div>

@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  computed,
+  inject,
   signal,
 } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '@core/auth/auth.service';
 import { NAV_ITEMS, type NavItem } from './config/nav.config';
 import { MobMenuComponent } from './mob-menu/mob-menu.component';
 
@@ -17,7 +20,15 @@ import { MobMenuComponent } from './mob-menu/mob-menu.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NavMenuComponent {
-  readonly items: readonly NavItem[] = NAV_ITEMS;
+  private readonly auth = inject(AuthService);
+
+  readonly items = computed<readonly NavItem[]>(() =>
+    NAV_ITEMS.filter(
+      (item) =>
+        item.permissions.length === 0 ||
+        this.auth.hasAnyPermission([...item.permissions]),
+    ),
+  );
 
   readonly activeMenu = signal<string | null>(null);
   readonly mobileOpen = signal(false);
