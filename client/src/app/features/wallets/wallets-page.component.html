@@ -1,0 +1,68 @@
+<section class="wallets">
+  <header class="wallets__header">
+    <h1 class="wallets__title">Wallets</h1>
+    <button
+      type="button"
+      class="wallets__refresh"
+      (click)="load()"
+      [disabled]="loading()"
+    >
+      {{ loading() ? 'Loading…' : 'Refresh' }}
+    </button>
+  </header>
+
+  @if (error(); as err) {
+  <div class="wallets__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="wallets__retry" (click)="load()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="wallets__loading">
+    Loading wallets…
+  </div>
+  } @else if (isEmpty()) {
+  <div class="wallets__empty">
+    <p>No wallets yet.</p>
+  </div>
+  } @else {
+  <div class="wallets__table-wrap">
+    <table class="wallets__table">
+      <thead>
+      <tr>
+        <th scope="col">Currency</th>
+        <th scope="col" class="wallets__cell--right">Balance</th>
+        <th scope="col">Status</th>
+        <th scope="col">Updated</th>
+        <th scope="col" class="wallets__cell--chevron" aria-label="Open"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (wallet of wallets(); track wallet.id) {
+      <tr class="wallets__row">
+        <td class="wallets__currency">
+          <a
+            class="wallets__link"
+            [routerLink]="['/wallets', wallet.id]"
+          >
+            {{ wallet.currency }}
+          </a>
+        </td>
+        <td class="wallets__cell--right">
+          {{ formatBalance(wallet.balance, wallet.currency) }}
+        </td>
+        <td>
+                <span class="wallets__status" [class]="statusClass(wallet.status)">
+                  {{ wallet.status }}
+                </span>
+        </td>
+        <td>{{ formatDate(wallet.updatedAt) }}</td>
+        <td class="wallets__cell--chevron" aria-hidden="true">›</td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+  }
+</section>

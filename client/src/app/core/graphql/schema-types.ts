@@ -12,19 +12,19 @@ export type Scalars = {
 export type CreateFeeRuleInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   feeType: FeeType;
-  fixedAmount?: InputMaybe<Scalars['Float']['input']>;
+  fixedAmount?: InputMaybe<Scalars['String']['input']>;
   fromWalletId?: InputMaybe<Scalars['ID']['input']>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
-  maxAmount?: InputMaybe<Scalars['Float']['input']>;
-  minAmount?: InputMaybe<Scalars['Float']['input']>;
+  maxAmount?: InputMaybe<Scalars['String']['input']>;
+  minAmount?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  percentage?: InputMaybe<Scalars['Float']['input']>;
+  percentage?: InputMaybe<Scalars['String']['input']>;
   toWalletId?: InputMaybe<Scalars['ID']['input']>;
   transactionType: Scalars['String']['input'];
 };
 
 export type CreatePaymentInput = {
-  amount: Scalars['Float']['input'];
+  amount: Scalars['String']['input'];
   currency: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   idempotencyKey: Scalars['String']['input'];
@@ -33,7 +33,7 @@ export type CreatePaymentInput = {
 };
 
 export type CreateRefundInput = {
-  amount: Scalars['Float']['input'];
+  amount: Scalars['String']['input'];
   currency: Scalars['String']['input'];
   idempotencyKey: Scalars['String']['input'];
   paymentId: Scalars['ID']['input'];
@@ -50,30 +50,30 @@ export type CreateUserInput = {
 
 export type CreateWalletInput = {
   currency: Scalars['String']['input'];
-  initialBalance?: InputMaybe<Scalars['Float']['input']>;
+  initialBalance?: InputMaybe<Scalars['String']['input']>;
   userId: Scalars['ID']['input'];
 };
 
 export type Fee = {
   __typename?: 'Fee';
-  amount: Scalars['Float']['output'];
+  amount: Scalars['String']['output'];
   calculationRule?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   currency: Scalars['String']['output'];
   fromWalletId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
-  percentage?: Maybe<Scalars['Float']['output']>;
+  percentage?: Maybe<Scalars['String']['output']>;
   toWalletId: Scalars['ID']['output'];
   transactionId?: Maybe<Scalars['ID']['output']>;
   type: FeeType;
 };
 
 export type FeeInput = {
-  amount: Scalars['Float']['input'];
+  amount: Scalars['String']['input'];
   calculationRule?: InputMaybe<Scalars['String']['input']>;
   currency: Scalars['String']['input'];
   fromWalletId: Scalars['ID']['input'];
-  percentage?: InputMaybe<Scalars['Float']['input']>;
+  percentage?: InputMaybe<Scalars['String']['input']>;
   toWalletId: Scalars['ID']['input'];
   transactionId?: InputMaybe<Scalars['ID']['input']>;
   type: Scalars['String']['input'];
@@ -84,14 +84,14 @@ export type FeeRule = {
   createdAt: Scalars['String']['output'];
   currency?: Maybe<Scalars['String']['output']>;
   feeType: FeeType;
-  fixedAmount?: Maybe<Scalars['Float']['output']>;
+  fixedAmount?: Maybe<Scalars['String']['output']>;
   fromWalletId?: Maybe<Scalars['ID']['output']>;
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
-  maxAmount?: Maybe<Scalars['Float']['output']>;
-  minAmount?: Maybe<Scalars['Float']['output']>;
+  maxAmount?: Maybe<Scalars['String']['output']>;
+  minAmount?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
-  percentage?: Maybe<Scalars['Float']['output']>;
+  percentage?: Maybe<Scalars['String']['output']>;
   toWalletId?: Maybe<Scalars['ID']['output']>;
   transactionType: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
@@ -253,7 +253,7 @@ export type MutationUpdateUserArgs = {
 
 export type Payment = {
   __typename?: 'Payment';
-  amount: Scalars['Float']['output'];
+  amount: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   currency: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
@@ -393,7 +393,7 @@ export type QueryWalletsByUserIdArgs = {
 
 export type Refund = {
   __typename?: 'Refund';
-  amount: Scalars['Float']['output'];
+  amount: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   currency: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -414,7 +414,7 @@ export enum RefundStatus {
 }
 
 export type TopUpInput = {
-  amount: Scalars['Float']['input'];
+  amount: Scalars['String']['input'];
   currency: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   idempotencyKey: Scalars['String']['input'];
@@ -423,7 +423,7 @@ export type TopUpInput = {
 
 export type Transaction = {
   __typename?: 'Transaction';
-  amount: Scalars['Float']['output'];
+  amount: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   creditWalletId: Scalars['ID']['output'];
   currency: Scalars['String']['output'];
@@ -450,7 +450,7 @@ export enum TransactionType {
 }
 
 export type TransferInput = {
-  amount: Scalars['Float']['input'];
+  amount: Scalars['String']['input'];
   currency: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   fromWalletId: Scalars['ID']['input'];
@@ -461,14 +461,14 @@ export type TransferInput = {
 export type UpdateFeeRuleInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   feeType?: InputMaybe<FeeType>;
-  fixedAmount?: InputMaybe<Scalars['Float']['input']>;
+  fixedAmount?: InputMaybe<Scalars['String']['input']>;
   fromWalletId?: InputMaybe<Scalars['ID']['input']>;
   id: Scalars['ID']['input'];
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
-  maxAmount?: InputMaybe<Scalars['Float']['input']>;
-  minAmount?: InputMaybe<Scalars['Float']['input']>;
+  maxAmount?: InputMaybe<Scalars['String']['input']>;
+  minAmount?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  percentage?: InputMaybe<Scalars['Float']['input']>;
+  percentage?: InputMaybe<Scalars['String']['input']>;
   toWalletId?: InputMaybe<Scalars['ID']['input']>;
   transactionType?: InputMaybe<Scalars['String']['input']>;
 };
@@ -505,7 +505,7 @@ export enum UserStatus {
 
 export type Wallet = {
   __typename?: 'Wallet';
-  balance: Scalars['Float']['output'];
+  balance: Scalars['String']['output'];
   createdAt: Scalars['String']['output'];
   currency: Scalars['String']['output'];
   id: Scalars['ID']['output'];

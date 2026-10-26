@@ -1,0 +1,11 @@
+query Wallets {
+  wallets {
+    id
+    userId
+    balance
+    currency
+    status
+    createdAt
+    updatedAt
+  }
+}

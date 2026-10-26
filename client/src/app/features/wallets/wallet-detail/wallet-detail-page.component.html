@@ -1,0 +1,18 @@
+<section class="wallet-detail">
+  <header class="wallet-detail__header">
+    <button
+      type="button"
+      class="wallet-detail__back"
+      (click)="back()"
+    >
+      ‹ Back to wallets
+    </button>
+    <h1 class="wallet-detail__title">Wallet</h1>
+  </header>
+
+  <div class="wallet-detail__placeholder">
+    <p class="wallet-detail__label">Wallet ID</p>
+    <p class="wallet-detail__id">{{ walletId }}</p>
+    <p class="wallet-detail__hint">Wallet details will appear here.</p>
+  </div>
+</section>
