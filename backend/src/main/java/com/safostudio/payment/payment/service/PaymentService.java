@@ -7,6 +7,7 @@ import com.safostudio.payment.payment.dto.CreatePaymentRequest;
 import com.safostudio.payment.payment.dto.PaymentPageResponse;
 import com.safostudio.payment.payment.dto.PaymentResponse;
 import com.safostudio.payment.payment.repository.PaymentRepository;
+import com.safostudio.payment.shared.cursor.CursorCodec;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -118,8 +119,8 @@ public class PaymentService {
           String after
   ) {
     int effectiveLimit = normalizeLimit(limit);
-    PaymentCursorCodec.Cursor cursor = after != null && !after.isBlank()
-            ? PaymentCursorCodec.decode(after)
+    CursorCodec.Cursor cursor = after != null && !after.isBlank()
+            ? CursorCodec.decode(after)
             : null;
 
     Instant cursorTime = cursor != null ? cursor.createdAt() : null;
@@ -139,8 +140,8 @@ public class PaymentService {
 
     String nextCursor = null;
     if (hasMore && !page.isEmpty()) {
-      Payment last = page.get(page.size() - 1);
-      nextCursor = PaymentCursorCodec.encode(last.getCreatedAt(), last.getId());
+      Payment last = page.getLast();
+      nextCursor = CursorCodec.encode(last.getCreatedAt(), last.getId());
     }
 
     return new PaymentPageResponse(
@@ -154,7 +155,7 @@ public class PaymentService {
     if (limit == null) {
       return DEFAULT_LIMIT;
     }
-    return Math.min(Math.max(limit, 1), MAX_LIMIT);
+    return Math.clamp(limit, 1, MAX_LIMIT);
   }
 
   private record PaymentFingerprint(UUID walletId,

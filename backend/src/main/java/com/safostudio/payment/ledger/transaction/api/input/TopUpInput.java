@@ -1,11 +1,10 @@
-package com.safostudio.payment.wallet.api.input;
+package com.safostudio.payment.ledger.transaction.api.input;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record TransferInput(
-        UUID fromWalletId,
-        UUID toWalletId,
+public record TopUpInput(
+        UUID walletId,
         BigDecimal amount,
         String currency,
         String description,

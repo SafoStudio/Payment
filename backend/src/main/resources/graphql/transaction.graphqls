@@ -42,9 +42,22 @@ input TopUpInput {
     idempotencyKey: String!
 }
 
+input TransactionFilterInput {
+    type: TransactionType
+    status: TransactionStatus
+    currency: String
+}
+
+type TransactionPage {
+    items: [Transaction!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
 extend type Query {
     transaction(id: ID!): Transaction!
     walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
+    transactions(filter: TransactionFilterInput, limit: Int = 20, after: String): TransactionPage!
 }
 
 extend type Mutation {

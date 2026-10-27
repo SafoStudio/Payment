@@ -1,4 +1,4 @@
-package com.safostudio.payment.wallet.service;
+package com.safostudio.payment.ledger.transaction.service;
 
 import com.safostudio.payment.fee.domain.Fee;
 import com.safostudio.payment.fee.dto.CalculateFeeRequest;
@@ -11,9 +11,9 @@ import com.safostudio.payment.shared.config.SystemWalletsProperties;
 import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.wallet.domain.Wallet;
-import com.safostudio.payment.wallet.dto.TopUpRequest;
+import com.safostudio.payment.ledger.transaction.dto.TopUpRequest;
 import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
-import com.safostudio.payment.wallet.dto.TransferRequest;
+import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -182,7 +182,7 @@ public class TransferService {
 
   private void applyFees(Transaction parentTransaction, TransferRequest request) {
     CalculateFeeRequest feeRequest = CalculateFeeRequest.builder()
-            .transactionType("TRANSFER")
+            .transactionType("OPERATION_TRANSFER")
             .amount(request.getAmount())
             .currency(request.getCurrency())
             .fromWalletId(request.getFromWalletId())

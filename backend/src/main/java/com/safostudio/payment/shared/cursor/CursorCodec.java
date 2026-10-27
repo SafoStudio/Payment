@@ -1,4 +1,4 @@
-package com.safostudio.payment.payment.service;
+package com.safostudio.payment.shared.cursor;
 
 import com.safostudio.payment.shared.exception.BusinessException;
 
@@ -7,19 +7,19 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
-final class PaymentCursorCodec {
+public final class CursorCodec {
 
   private static final String SEPARATOR = "|";
 
-  private PaymentCursorCodec() {}
+  private CursorCodec() {}
 
-  static String encode(Instant createdAt, UUID id) {
+  public static String encode(Instant createdAt, UUID id) {
     String raw = createdAt.toString() + SEPARATOR + id;
     return Base64.getUrlEncoder().withoutPadding()
             .encodeToString(raw.getBytes(StandardCharsets.UTF_8));
   }
 
-  static Cursor decode(String cursor) {
+  public static Cursor decode(String cursor) {
     try {
       String raw = new String(
               Base64.getUrlDecoder().decode(cursor),
@@ -37,5 +37,5 @@ final class PaymentCursorCodec {
     }
   }
 
-  record Cursor(Instant createdAt, UUID id) {}
+  public record Cursor(Instant createdAt, UUID id) {}
 }

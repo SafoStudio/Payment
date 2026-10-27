@@ -1,4 +1,4 @@
-package com.safostudio.payment.wallet.dto;
+package com.safostudio.payment.ledger.transaction.dto;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -16,21 +16,24 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TopUpRequest {
+public class TransferRequest {
 
-    @NotNull(message = "Wallet ID is required")
-    private UUID walletId;
+    @NotNull(message = "Source wallet ID is required")
+    private UUID fromWalletId;
+
+    @NotNull(message = "Destination wallet ID is required")
+    private UUID toWalletId;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
     private BigDecimal amount;
 
-    @NotNull(message = "Currency is required")
+    @NotBlank(message = "Currency is required")
     @Pattern(regexp = "^[A-Z]{3}$", message = "Currency must be a valid ISO 4217 code")
     private String currency;
 
     private String description;
 
-    @NotBlank(message = "Idempotency key is required for top-up")
+    @NotBlank(message = "Idempotency key is required for transfer")
     private String idempotencyKey;
 }
