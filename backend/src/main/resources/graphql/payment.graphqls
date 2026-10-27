@@ -13,6 +13,12 @@ type Payment {
     updatedAt: String!
 }
 
+type PaymentPage {
+    items: [Payment!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
 enum PaymentStatus {
     PENDING
     PROCESSING
@@ -39,10 +45,17 @@ input CreatePaymentInput {
     description: String
 }
 
+input PaymentFilterInput {
+    status: PaymentStatus
+    type: PaymentType
+    currency: String
+}
+
 extend type Query {
     payment(id: ID!): Payment!
     paymentByIdempotencyKey(key: String!): Payment
     paymentsByWallet(walletId: ID!): [Payment!]!
+    payments(filter: PaymentFilterInput, limit: Int = 20, after: String): PaymentPage!
 }
 
 extend type Mutation {

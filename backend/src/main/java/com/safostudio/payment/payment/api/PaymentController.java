@@ -1,9 +1,11 @@
 package com.safostudio.payment.payment.api;
 
 import com.safostudio.payment.payment.api.input.CreatePaymentInput;
+import com.safostudio.payment.payment.api.input.PaymentFilterInput;
 import com.safostudio.payment.payment.domain.PaymentType;
 import com.safostudio.payment.payment.service.PaymentService;
 import com.safostudio.payment.payment.dto.CreatePaymentRequest;
+import com.safostudio.payment.payment.dto.PaymentPageResponse;
 import com.safostudio.payment.payment.dto.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -66,5 +68,23 @@ public class PaymentController {
   @QueryMapping
   public List<PaymentResponse> paymentsByWallet(@Argument UUID walletId) {
     return paymentService.getPaymentsByWallet(walletId);
+  }
+
+  @PreAuthorize("hasAnyAuthority('payment:read:all', 'payment:read:own', 'payment:manage:own')")
+  @QueryMapping
+  public PaymentPageResponse payments(
+          @Argument PaymentFilterInput filter,
+          @Argument Integer limit,
+          @Argument String after
+  ) {
+    String status = filter != null && filter.status() != null
+            ? filter.status().name()
+            : null;
+    String type = filter != null && filter.type() != null
+            ? filter.type().name()
+            : null;
+    String currency = filter != null ? filter.currency() : null;
+
+    return paymentService.getPayments(status, type, currency, limit, after);
   }
 }

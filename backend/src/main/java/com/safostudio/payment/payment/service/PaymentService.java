@@ -4,6 +4,7 @@ import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
 import com.safostudio.payment.payment.domain.Payment;
 import com.safostudio.payment.payment.domain.PaymentType;
 import com.safostudio.payment.payment.dto.CreatePaymentRequest;
+import com.safostudio.payment.payment.dto.PaymentPageResponse;
 import com.safostudio.payment.payment.dto.PaymentResponse;
 import com.safostudio.payment.payment.repository.PaymentRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +23,8 @@ import java.util.UUID;
 public class PaymentService {
 
   private static final String OPERATION = "PAYMENT";
+  private static final int MAX_LIMIT = 100;
+  private static final int DEFAULT_LIMIT = 20;
 
   private final PaymentRepository paymentRepository;
   private final PaymentProcessor paymentProcessor;
@@ -103,6 +107,54 @@ public class PaymentService {
             .stream()
             .map(PaymentResponse::from)
             .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public PaymentPageResponse getPayments(
+          String status,
+          String type,
+          String currency,
+          Integer limit,
+          String after
+  ) {
+    int effectiveLimit = normalizeLimit(limit);
+    PaymentCursorCodec.Cursor cursor = after != null && !after.isBlank()
+            ? PaymentCursorCodec.decode(after)
+            : null;
+
+    Instant cursorTime = cursor != null ? cursor.createdAt() : null;
+    UUID cursorId = cursor != null ? cursor.id() : null;
+
+    List<Payment> fetched = paymentRepository.findPage(
+            status,
+            type,
+            currency,
+            cursorTime,
+            cursorId,
+            effectiveLimit + 1
+    );
+
+    boolean hasMore = fetched.size() > effectiveLimit;
+    List<Payment> page = hasMore ? fetched.subList(0, effectiveLimit) : fetched;
+
+    String nextCursor = null;
+    if (hasMore && !page.isEmpty()) {
+      Payment last = page.get(page.size() - 1);
+      nextCursor = PaymentCursorCodec.encode(last.getCreatedAt(), last.getId());
+    }
+
+    return new PaymentPageResponse(
+            page.stream().map(PaymentResponse::from).toList(),
+            nextCursor,
+            hasMore
+    );
+  }
+
+  private int normalizeLimit(Integer limit) {
+    if (limit == null) {
+      return DEFAULT_LIMIT;
+    }
+    return Math.min(Math.max(limit, 1), MAX_LIMIT);
   }
 
   private record PaymentFingerprint(UUID walletId,
