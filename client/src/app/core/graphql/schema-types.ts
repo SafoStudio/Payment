@@ -311,6 +311,7 @@ export type Query = {
   refund?: Maybe<Refund>;
   refundsByPayment: Array<Refund>;
   transaction: Transaction;
+  transactions: TransactionPage;
   user: User;
   userByEmail: User;
   users: Array<User>;
@@ -376,6 +377,13 @@ export type QueryRefundsByPaymentArgs = {
 
 export type QueryTransactionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryTransactionsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<TransactionFilterInput>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -450,6 +458,19 @@ export type Transaction = {
   referenceId?: Maybe<Scalars['ID']['output']>;
   status: TransactionStatus;
   type: TransactionType;
+};
+
+export type TransactionFilterInput = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<TransactionStatus>;
+  type?: InputMaybe<TransactionType>;
+};
+
+export type TransactionPage = {
+  __typename?: 'TransactionPage';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<Transaction>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type TransactionStatus =

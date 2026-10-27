@@ -1,0 +1,118 @@
+<section class="transactions">
+  <header class="transactions__header">
+    <h1 class="transactions__title">Transactions</h1>
+    <div class="transactions__controls">
+      <label class="transactions__filter">
+        <span class="transactions__filter-label">Type</span>
+        <select
+          class="transactions__filter-select"
+          [value]="type()"
+          (change)="onTypeChange($any($event.target).value)"
+        >
+          @for (opt of typeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="transactions__filter">
+        <span class="transactions__filter-label">Status</span>
+        <select
+          class="transactions__filter-select"
+          [value]="status()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="transactions__refresh"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+  <div class="transactions__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="transactions__retry" (click)="reload()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="transactions__loading">
+    Loading transactions…
+  </div>
+  } @else if (isEmpty()) {
+  <div class="transactions__empty">
+    <p>No transactions found.</p>
+  </div>
+  } @else {
+  <div class="transactions__table-wrap">
+    <table class="transactions__table">
+      <thead>
+      <tr>
+        <th scope="col">Created</th>
+        <th scope="col" class="transactions__cell--right">Amount</th>
+        <th scope="col">Type</th>
+        <th scope="col">Status</th>
+        <th scope="col">Description</th>
+        <th scope="col" class="transactions__cell--chevron" aria-label="Open"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (tx of items(); track tx.id) {
+      <tr class="transactions__row">
+        <td class="transactions__created">
+          <a
+            class="transactions__link"
+            [routerLink]="['/transactions', tx.id]"
+          >
+            {{ formatDate(tx.createdAt) }}
+          </a>
+        </td>
+        <td class="transactions__cell--right">
+          {{ formatAmount(tx.amount, tx.currency) }}
+        </td>
+        <td>{{ tx.type }}</td>
+        <td>
+                <span
+                  class="transactions__status"
+                  [class]="statusClass(tx.status)"
+                >
+                  {{ tx.status }}
+                </span>
+        </td>
+        <td class="transactions__description" [title]="tx.description ?? ''">
+          {{ tx.description || '—' }}
+        </td>
+        <td class="transactions__cell--chevron">
+          <span aria-hidden="true">›</span>
+        </td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="transactions__more">
+    <button
+      type="button"
+      class="transactions__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>

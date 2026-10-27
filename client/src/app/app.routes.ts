@@ -62,6 +62,28 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'transactions',
+        canActivate: [
+          permissionGuard(['transaction:read:own', 'transaction:read:all']),
+        ],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import(
+                '@features/transactions/transactions-page.component'
+              ).then((m) => m.TransactionsPageComponent),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/transactions/transaction-detail/transaction-detail-page.component'
+              ).then((m) => m.TransactionDetailPageComponent),
+          },
+        ],
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

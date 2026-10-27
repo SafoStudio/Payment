@@ -1,0 +1,18 @@
+<section class="transaction-detail">
+  <header class="transaction-detail__header">
+    <button
+      type="button"
+      class="transaction-detail__back"
+      (click)="back()"
+    >
+      ‹ Back to transactions
+    </button>
+    <h1 class="transaction-detail__title">Transaction</h1>
+  </header>
+
+  <div class="transaction-detail__placeholder">
+    <p class="transaction-detail__label">Transaction ID</p>
+    <p class="transaction-detail__id">{{ transactionId }}</p>
+    <p class="transaction-detail__hint">Transaction details will appear here.</p>
+  </div>
+</section>

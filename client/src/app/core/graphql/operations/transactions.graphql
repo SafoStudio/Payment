@@ -1,0 +1,18 @@
+query Transactions($filter: TransactionFilterInput, $limit: Int, $after: String) {
+  transactions(filter: $filter, limit: $limit, after: $after) {
+    items {
+      id
+      debitWalletId
+      creditWalletId
+      amount
+      currency
+      type
+      status
+      description
+      referenceId
+      createdAt
+    }
+    nextCursor
+    hasMore
+  }
+}
