@@ -97,12 +97,11 @@ export type FeeRule = {
   updatedAt: Scalars['String']['output'];
 };
 
-export enum FeeType {
-  Fixed = 'FIXED',
-  Mixed = 'MIXED',
-  Percentage = 'PERCENTAGE',
-  Tiered = 'TIERED'
-}
+export type FeeType =
+  | 'FIXED'
+  | 'MIXED'
+  | 'PERCENTAGE'
+  | 'TIERED';
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -267,22 +266,33 @@ export type Payment = {
   walletId: Scalars['ID']['output'];
 };
 
-export enum PaymentStatus {
-  Cancelled = 'CANCELLED',
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Processing = 'PROCESSING',
-  Refunded = 'REFUNDED',
-  Succeeded = 'SUCCEEDED'
-}
+export type PaymentFilterInput = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<PaymentStatus>;
+  type?: InputMaybe<PaymentType>;
+};
 
-export enum PaymentType {
-  Payment = 'PAYMENT',
-  Refund = 'REFUND',
-  TopUp = 'TOP_UP',
-  Transfer = 'TRANSFER',
-  Withdrawal = 'WITHDRAWAL'
-}
+export type PaymentPage = {
+  __typename?: 'PaymentPage';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<Payment>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type PaymentStatus =
+  | 'CANCELLED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'REFUNDED'
+  | 'SUCCEEDED';
+
+export type PaymentType =
+  | 'PAYMENT'
+  | 'REFUND'
+  | 'TOP_UP'
+  | 'TRANSFER'
+  | 'WITHDRAWAL';
 
 export type Query = {
   __typename?: 'Query';
@@ -296,6 +306,7 @@ export type Query = {
   me: User;
   payment: Payment;
   paymentByIdempotencyKey?: Maybe<Payment>;
+  payments: PaymentPage;
   paymentsByWallet: Array<Payment>;
   refund?: Maybe<Refund>;
   refundsByPayment: Array<Refund>;
@@ -338,6 +349,13 @@ export type QueryPaymentArgs = {
 
 export type QueryPaymentByIdempotencyKeyArgs = {
   key: Scalars['String']['input'];
+};
+
+
+export type QueryPaymentsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<PaymentFilterInput>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -405,13 +423,12 @@ export type Refund = {
   updatedAt: Scalars['String']['output'];
 };
 
-export enum RefundStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Processing = 'PROCESSING',
-  Rejected = 'REJECTED'
-}
+export type RefundStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'REJECTED';
 
 export type TopUpInput = {
   amount: Scalars['String']['input'];
@@ -435,19 +452,17 @@ export type Transaction = {
   type: TransactionType;
 };
 
-export enum TransactionStatus {
-  Cancelled = 'CANCELLED',
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
+export type TransactionStatus =
+  | 'CANCELLED'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING';
 
-export enum TransactionType {
-  Refund = 'REFUND',
-  TopUp = 'TOP_UP',
-  Transfer = 'TRANSFER',
-  Withdrawal = 'WITHDRAWAL'
-}
+export type TransactionType =
+  | 'REFUND'
+  | 'TOP_UP'
+  | 'TRANSFER'
+  | 'WITHDRAWAL';
 
 export type TransferInput = {
   amount: Scalars['String']['input'];
@@ -497,11 +512,10 @@ export type User = {
   wallets: Array<Wallet>;
 };
 
-export enum UserStatus {
-  Active = 'ACTIVE',
-  Blocked = 'BLOCKED',
-  Deleted = 'DELETED'
-}
+export type UserStatus =
+  | 'ACTIVE'
+  | 'BLOCKED'
+  | 'DELETED';
 
 export type Wallet = {
   __typename?: 'Wallet';
@@ -514,8 +528,7 @@ export type Wallet = {
   userId: Scalars['ID']['output'];
 };
 
-export enum WalletStatus {
-  Active = 'ACTIVE',
-  Blocked = 'BLOCKED',
-  Closed = 'CLOSED'
-}
+export type WalletStatus =
+  | 'ACTIVE'
+  | 'BLOCKED'
+  | 'CLOSED';

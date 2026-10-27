@@ -6,11 +6,15 @@ const config: CodegenConfig = {
   generates: {
     './src/app/core/graphql/schema-types.ts': {
       plugins: ['typescript'],
+      config: {
+        enumsAsTypes: true,
+      },
     },
     './src/app/core/graphql/documents.ts': {
       plugins: ['typescript-operations', 'typed-document-node'],
       config: {
         importSchemaTypesFrom: './src/app/core/graphql/schema-types.ts',
+        enumsAsTypes: true,
       },
     },
   },

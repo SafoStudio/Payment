@@ -1,0 +1,18 @@
+query Payments($filter: PaymentFilterInput, $limit: Int, $after: String) {
+  payments(filter: $filter, limit: $limit, after: $after) {
+    items {
+      id
+      walletId
+      targetWalletId
+      amount
+      currency
+      status
+      type
+      description
+      createdAt
+      updatedAt
+    }
+    nextCursor
+    hasMore
+  }
+}
