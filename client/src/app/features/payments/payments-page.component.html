@@ -1,0 +1,102 @@
+<section class="payments">
+  <header class="payments__header">
+    <h1 class="payments__title">Payments</h1>
+    <div class="payments__controls">
+      <label class="payments__filter">
+        <span class="payments__filter-label">Status</span>
+        <select
+          class="payments__filter-select"
+          [value]="status()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="payments__refresh"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+  <div class="payments__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="payments__retry" (click)="reload()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="payments__loading">
+    Loading payments…
+  </div>
+  } @else if (isEmpty()) {
+  <div class="payments__empty">
+    <p>No payments found.</p>
+  </div>
+  } @else {
+  <div class="payments__table-wrap">
+    <table class="payments__table">
+      <thead>
+      <tr>
+        <th scope="col">Created</th>
+        <th scope="col" class="payments__cell--right">Amount</th>
+        <th scope="col">Type</th>
+        <th scope="col">Status</th>
+        <th scope="col">Description</th>
+        <th scope="col" class="payments__cell--chevron" aria-label="Open"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (payment of items(); track payment.id) {
+      <tr class="payments__row">
+        <td class="payments__created">
+          <a
+            class="payments__link"
+            [routerLink]="['/payments', payment.id]"
+          >
+            {{ formatDate(payment.createdAt) }}
+          </a>
+        </td>
+        <td class="payments__cell--right">
+          {{ formatAmount(payment.amount, payment.currency) }}
+        </td>
+        <td>{{ payment.type }}</td>
+        <td>
+                <span
+                  class="payments__status"
+                  [class]="statusClass(payment.status)"
+                >
+                  {{ payment.status }}
+                </span>
+        </td>
+        <td class="payments__description" [title]="payment.description ?? ''">
+          {{ payment.description || '—' }}
+        </td>
+        <td class="payments__cell--chevron">›</td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="payments__more">
+    <button
+      type="button"
+      class="payments__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>

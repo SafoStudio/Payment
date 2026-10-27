@@ -36,6 +36,32 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'payments',
+        canActivate: [
+          permissionGuard([
+            'payment:read:own',
+            'payment:read:all',
+            'payment:manage:own',
+          ]),
+        ],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('@features/payments/payments-page.component').then(
+                (m) => m.PaymentsPageComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/payments/payment-detail/payment-detail-page.component'
+              ).then((m) => m.PaymentDetailPageComponent),
+          },
+        ],
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

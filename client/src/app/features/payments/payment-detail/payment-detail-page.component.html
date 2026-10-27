@@ -1,0 +1,18 @@
+<section class="payment-detail">
+  <header class="payment-detail__header">
+    <button
+      type="button"
+      class="payment-detail__back"
+      (click)="back()"
+    >
+      ‹ Back to payments
+    </button>
+    <h1 class="payment-detail__title">Payment</h1>
+  </header>
+
+  <div class="payment-detail__placeholder">
+    <p class="payment-detail__label">Payment ID</p>
+    <p class="payment-detail__id">{{ paymentId }}</p>
+    <p class="payment-detail__hint">Payment details will appear here.</p>
+  </div>
+</section>

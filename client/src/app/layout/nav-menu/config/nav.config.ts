@@ -37,7 +37,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
         title: 'Overview',
         hideTitle: true,
         links: [
-          { label: 'All payments', link: '/dashboard' },
+          { label: 'All payments', link: '/payments' },
           { label: 'Transactions', link: '/dashboard' },
           { label: 'Refunds', link: '/dashboard' },
           { label: 'Disputes', link: '/dashboard' },
