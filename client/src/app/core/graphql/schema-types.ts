@@ -309,6 +309,7 @@ export type Query = {
   payments: PaymentPage;
   paymentsByWallet: Array<Payment>;
   refund?: Maybe<Refund>;
+  refunds: RefundPage;
   refundsByPayment: Array<Refund>;
   transaction: Transaction;
   transactions: TransactionPage;
@@ -367,6 +368,13 @@ export type QueryPaymentsByWalletArgs = {
 
 export type QueryRefundArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryRefundsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<RefundFilterInput>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -429,6 +437,18 @@ export type Refund = {
   refundTransactionId?: Maybe<Scalars['ID']['output']>;
   status: RefundStatus;
   updatedAt: Scalars['String']['output'];
+};
+
+export type RefundFilterInput = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<RefundStatus>;
+};
+
+export type RefundPage = {
+  __typename?: 'RefundPage';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<Refund>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
 };
 
 export type RefundStatus =

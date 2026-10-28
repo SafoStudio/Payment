@@ -84,6 +84,28 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'refunds',
+        canActivate: [
+          permissionGuard(['refund:read:own', 'refund:read:all']),
+        ],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('@features/refunds/refunds-page.component').then(
+                (m) => m.RefundsPageComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/refunds/refund-detail/refund-detail-page.component'
+              ).then((m) => m.RefundDetailPageComponent),
+          },
+        ],
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

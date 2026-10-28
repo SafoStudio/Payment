@@ -1,0 +1,18 @@
+<section class="refund-detail">
+  <header class="refund-detail__header">
+    <button
+      type="button"
+      class="refund-detail__back"
+      (click)="back()"
+    >
+      ‹ Back to refunds
+    </button>
+    <h1 class="refund-detail__title">Refund</h1>
+  </header>
+
+  <div class="refund-detail__placeholder">
+    <p class="refund-detail__label">Refund ID</p>
+    <p class="refund-detail__id">{{ refundId }}</p>
+    <p class="refund-detail__hint">Refund details will appear here.</p>
+  </div>
+</section>

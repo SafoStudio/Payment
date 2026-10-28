@@ -1,0 +1,102 @@
+<section class="refunds">
+  <header class="refunds__header">
+    <h1 class="refunds__title">Refunds</h1>
+    <div class="refunds__controls">
+      <label class="refunds__filter">
+        <span class="refunds__filter-label">Status</span>
+        <select
+          class="refunds__filter-select"
+          [value]="status()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="refunds__refresh"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+  <div class="refunds__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="refunds__retry" (click)="reload()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="refunds__loading">
+    Loading refunds…
+  </div>
+  } @else if (isEmpty()) {
+  <div class="refunds__empty">
+    <p>No refunds found.</p>
+  </div>
+  } @else {
+  <div class="refunds__table-wrap">
+    <table class="refunds__table">
+      <thead>
+      <tr>
+        <th scope="col">Created</th>
+        <th scope="col" class="refunds__cell--right">Amount</th>
+        <th scope="col">Status</th>
+        <th scope="col">Reason</th>
+        <th scope="col" class="refunds__cell--chevron" aria-label="Open"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (refund of items(); track refund.id) {
+      <tr class="refunds__row">
+        <td class="refunds__created">
+          <a
+            class="refunds__link"
+            [routerLink]="['/refunds', refund.id]"
+          >
+            {{ formatDate(refund.createdAt) }}
+          </a>
+        </td>
+        <td class="refunds__cell--right">
+          {{ formatAmount(refund.amount, refund.currency) }}
+        </td>
+        <td>
+                <span
+                  class="refunds__status"
+                  [class]="statusClass(refund.status)"
+                >
+                  {{ refund.status }}
+                </span>
+        </td>
+        <td class="refunds__reason" [title]="refund.reason ?? ''">
+          {{ refund.reason || '—' }}
+        </td>
+        <td class="refunds__cell--chevron">
+          <span aria-hidden="true">›</span>
+        </td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="refunds__more">
+    <button
+      type="button"
+      class="refunds__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>
