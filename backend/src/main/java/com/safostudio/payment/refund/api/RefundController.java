@@ -1,6 +1,9 @@
 package com.safostudio.payment.refund.api;
 
 import com.safostudio.payment.refund.api.input.CreateRefundInput;
+import com.safostudio.payment.refund.api.input.RefundFilterInput;
+import com.safostudio.payment.refund.dto.RefundPageResponse;
+import com.safostudio.payment.refund.service.RefundQueryService;
 import com.safostudio.payment.refund.service.RefundService;
 import com.safostudio.payment.refund.dto.CreateRefundRequest;
 import com.safostudio.payment.refund.dto.RefundResponse;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class RefundController {
 
   private final RefundService refundService;
+  private final RefundQueryService refundQueryService;
 
   @PreAuthorize("hasAuthority('refund:create')")
   @MutationMapping
@@ -50,5 +54,20 @@ public class RefundController {
   @QueryMapping
   public List<RefundResponse> refundsByPayment(@Argument UUID paymentId) {
     return refundService.getRefundsByPayment(paymentId);
+  }
+
+  @PreAuthorize("hasAnyAuthority('refund:read:all', 'refund:read:own')")
+  @QueryMapping
+  public RefundPageResponse refunds(
+          @Argument RefundFilterInput filter,
+          @Argument Integer limit,
+          @Argument String after
+  ) {
+    String status = filter != null && filter.status() != null
+            ? filter.status().name()
+            : null;
+    String currency = filter != null ? filter.currency() : null;
+
+    return refundQueryService.getRefunds(status, currency, limit, after);
   }
 }

@@ -27,9 +27,21 @@ input CreateRefundInput {
     idempotencyKey: String!
 }
 
+input RefundFilterInput {
+    status: RefundStatus
+    currency: String
+}
+
+type RefundPage {
+    items: [Refund!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
 extend type Query {
     refund(id: ID!): Refund
     refundsByPayment(paymentId: ID!): [Refund!]!
+    refunds(filter: RefundFilterInput, limit: Int = 20, after: String): RefundPage!
 }
 
 extend type Mutation {
