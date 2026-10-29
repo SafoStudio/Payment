@@ -2,6 +2,9 @@ package com.safostudio.payment.user.api;
 
 import com.safostudio.payment.user.api.input.CreateUserInput;
 import com.safostudio.payment.user.api.input.UpdateUserInput;
+import com.safostudio.payment.user.api.input.UserFilterInput;
+import com.safostudio.payment.user.dto.UserPageResponse;
+import com.safostudio.payment.user.service.UserQueryService;
 import com.safostudio.payment.user.service.UserService;
 import com.safostudio.payment.user.dto.CreateUserRequest;
 import com.safostudio.payment.user.dto.UpdateUserRequest;
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class UserController {
 
   private final UserService userService;
+  private final UserQueryService userQueryService;
 
   @PreAuthorize("isAuthenticated()")
   @QueryMapping
@@ -42,8 +46,17 @@ public class UserController {
 
   @PreAuthorize("hasAuthority('user:read:all')")
   @QueryMapping
-  public List<UserResponse> users() {
-    return userService.getAllUsers();
+  public UserPageResponse users(
+          @Argument UserFilterInput filter,
+          @Argument Integer limit,
+          @Argument String after
+  ) {
+    String status = filter != null && filter.status() != null
+            ? filter.status().name()
+            : null;
+    String roleCode = filter != null ? filter.roleCode() : null;
+
+    return userQueryService.getUsers(status, roleCode, limit, after);
   }
 
   @PreAuthorize("hasAuthority('user:read:all')")

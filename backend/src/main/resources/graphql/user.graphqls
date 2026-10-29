@@ -35,11 +35,22 @@ input UpdateUserInput {
     lastName: String
 }
 
+input UserFilterInput {
+    status: UserStatus
+    roleCode: String
+}
+
+type UserPage {
+    items: [User!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
 extend type Query {
     me: User!
     user(id: ID!): User!
     userByEmail(email: String!): User!
-    users: [User!]!
+    users(filter: UserFilterInput, limit: Int = 20, after: String): UserPage!
     activeUsers: [User!]!
     usersByRole(roleCode: String!): [User!]!
 }
