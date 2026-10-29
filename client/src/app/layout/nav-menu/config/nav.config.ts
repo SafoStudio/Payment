@@ -34,16 +34,21 @@ export const NAV_ITEMS: readonly NavItem[] = [
     permissions: ['payment:manage:own', 'payment:read:all'],
     sections: [
       {
-        title: 'Overview',
+        title: 'Payments',
         hideTitle: true,
         links: [
           { label: 'All payments', link: '/payments' },
-          { label: 'Transactions', link: '/transactions' },
           { label: 'Refunds', link: '/refunds' },
-          { label: 'Disputes', link: '/dashboard' },
         ],
       },
     ],
+  },
+  {
+    id: 'transactions',
+    label: 'Transactions',
+    icon: '⇆',
+    permissions: ['transaction:read:own', 'transaction:read:all'],
+    link: '/transactions',
   },
   {
     id: 'wallets',
@@ -56,9 +61,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
         hideTitle: true,
         links: [
           { label: 'Balances', link: '/wallets' },
-          { label: 'Balance history', link: '/dashboard' },
           { label: 'Payouts', link: '/dashboard' },
-          { label: 'Top up', link: '/dashboard' },
         ],
       },
     ],
