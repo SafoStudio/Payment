@@ -106,6 +106,26 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'users',
+        canActivate: [permissionGuard(['user:read:all'])],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('@features/users/users-page.component').then(
+                (m) => m.UsersPageComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/users/user-detail/user-detail-page.component'
+              ).then((m) => m.UserDetailPageComponent),
+          },
+        ],
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

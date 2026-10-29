@@ -67,6 +67,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     ],
   },
   {
+    id: 'users',
+    label: 'Users',
+    icon: '☷',
+    permissions: ['user:read:all'],
+    link: '/users',
+  },
+  {
     id: 'providers',
     label: 'Providers',
     icon: '⇋',
@@ -117,14 +124,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'admin',
     label: 'Admin',
     icon: '☰',
-    permissions: ['user:manage:all', 'role:manage:all', 'merchant:manage:all'],
+    permissions: ['role:manage:all', 'merchant:manage:all'],
     sections: [
       {
         title: 'Platform',
         hideTitle: true,
         links: [
           { label: 'Merchants', link: '/dashboard' },
-          { label: 'Users', link: '/dashboard' },
           { label: 'Roles & permissions', link: '/dashboard' },
         ],
       },

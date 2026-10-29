@@ -1,0 +1,18 @@
+query Users($filter: UserFilterInput, $limit: Int, $after: String) {
+  users(filter: $filter, limit: $limit, after: $after) {
+    items {
+      id
+      email
+      phone
+      firstName
+      lastName
+      fullName
+      roles
+      status
+      createdAt
+      updatedAt
+    }
+    nextCursor
+    hasMore
+  }
+}

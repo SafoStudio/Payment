@@ -1,0 +1,117 @@
+<section class="users">
+  <header class="users__header">
+    <h1 class="users__title">Users</h1>
+    <div class="users__controls">
+      <label class="users__filter">
+        <span class="users__filter-label">Status</span>
+        <select
+          class="users__filter-select"
+          [value]="status()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="users__filter">
+        <span class="users__filter-label">Role</span>
+        <select
+          class="users__filter-select"
+          [value]="roleCode()"
+          (change)="onRoleChange($any($event.target).value)"
+        >
+          @for (opt of roleOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="users__refresh"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+  <div class="users__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="users__retry" (click)="reload()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="users__loading">
+    Loading users…
+  </div>
+  } @else if (isEmpty()) {
+  <div class="users__empty">
+    <p>No users found.</p>
+  </div>
+  } @else {
+  <div class="users__table-wrap">
+    <table class="users__table">
+      <thead>
+      <tr>
+        <th scope="col">Email</th>
+        <th scope="col">Full name</th>
+        <th scope="col">Roles</th>
+        <th scope="col">Status</th>
+        <th scope="col">Created</th>
+        <th scope="col" class="users__cell--chevron" aria-label="Open"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (user of items(); track user.id) {
+      <tr class="users__row">
+        <td class="users__email">
+          <a
+            class="users__link"
+            [routerLink]="['/users', user.id]"
+          >
+            {{ user.email }}
+          </a>
+        </td>
+        <td>{{ user.fullName }}</td>
+        <td>
+                <span class="users__roles">
+                  @for (role of user.roles; track role) {
+                    <span class="users__role">{{ role }}</span>
+                  }
+                </span>
+        </td>
+        <td>
+                <span class="users__status" [class]="statusClass(user.status)">
+                  {{ user.status }}
+                </span>
+        </td>
+        <td>{{ formatDate(user.createdAt) }}</td>
+        <td class="users__cell--chevron">
+          <span aria-hidden="true">›</span>
+        </td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="users__more">
+    <button
+      type="button"
+      class="users__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>
