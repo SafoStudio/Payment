@@ -1,6 +1,5 @@
 package com.safostudio.payment.wallet.service;
 
-import com.safostudio.payment.ledger.transaction.service.TransferService;
 import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.user.repository.UserRepository;
@@ -26,7 +25,6 @@ import java.util.UUID;
 public class WalletService {
 
   private final WalletRepository walletRepository;
-  private final TransferService transferService;
   private final UserRepository userRepository;
 
   @Transactional

@@ -1,18 +1,212 @@
 <section class="user-detail">
   <header class="user-detail__header">
-    <button
-      type="button"
-      class="user-detail__back"
-      (click)="back()"
-    >
+    <button type="button" class="user-detail__back" (click)="goBack()">
       ‹ Back to users
     </button>
     <h1 class="user-detail__title">User</h1>
   </header>
 
-  <div class="user-detail__placeholder">
-    <p class="user-detail__label">User ID</p>
-    <p class="user-detail__id">{{ userId }}</p>
-    <p class="user-detail__hint">User details will appear here.</p>
+  @if (error(); as err) {
+  <div class="user-detail__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="user-detail__retry" (click)="reload()">
+      Try again
+    </button>
   </div>
+  } @else if (loading()) {
+  <div class="user-detail__loading">Loading user…</div>
+  } @else if (user(); as u) {
+  <div class="user-detail__summary">
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Email</span>
+      <span class="user-detail__value">{{ u.email }}</span>
+    </div>
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Full name</span>
+      <span class="user-detail__value">{{ u.fullName }}</span>
+    </div>
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Status</span>
+      <span class="user-detail__status" [class]="statusClass(u.status)">
+          {{ u.status }}
+        </span>
+    </div>
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Passkey</span>
+      <span class="user-detail__value">{{ u.hasPasskey ? 'Yes' : 'No' }}</span>
+    </div>
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Created</span>
+      <span class="user-detail__value">{{ formatDate(u.createdAt) }}</span>
+    </div>
+    <div class="user-detail__summary-cell">
+      <span class="user-detail__label">Updated</span>
+      <span class="user-detail__value">{{ formatDate(u.updatedAt) }}</span>
+    </div>
+  </div>
+
+  @if (canBlock()) {
+  <div class="user-detail__actions">
+    @if (isActive()) {
+    <button
+      type="button"
+      class="user-detail__action user-detail__action--danger"
+      (click)="changeStatus('block')"
+      [disabled]="busy()"
+    >
+      Block
+    </button>
+    }
+    @if (isBlocked()) {
+    <button
+      type="button"
+      class="user-detail__action"
+      (click)="changeStatus('activate')"
+      [disabled]="busy()"
+    >
+      Activate
+    </button>
+    }
+    @if (!isDeleted()) {
+    <button
+      type="button"
+      class="user-detail__action user-detail__action--danger"
+      (click)="changeStatus('delete')"
+      [disabled]="busy()"
+    >
+      Delete
+    </button>
+    }
+  </div>
+  }
+
+  @if (canAssignRole() && !isDeleted()) {
+  <section class="user-detail__roles">
+    <h2 class="user-detail__section-title">Roles</h2>
+    <div class="user-detail__role-list">
+      @for (role of allRoles; track role) {
+      <label class="user-detail__role-toggle">
+        <input
+          type="checkbox"
+          [checked]="hasRole(role)"
+          (change)="toggleRole(role)"
+          [disabled]="busy()"
+        />
+        <span>{{ role }}</span>
+      </label>
+      }
+    </div>
+  </section>
+  }
+
+  @if (canUpdate() && !isDeleted()) {
+  <section class="user-detail__edit">
+    <h2 class="user-detail__section-title">Profile</h2>
+    <div class="user-detail__edit-grid">
+      <label class="user-detail__field">
+        <span class="user-detail__label">Email</span>
+        <input
+          class="user-detail__input"
+          type="email"
+          [value]="emailDraft()"
+          (input)="onFieldInput('email', $any($event.target).value)"
+          [disabled]="busy()"
+        />
+      </label>
+      <label class="user-detail__field">
+        <span class="user-detail__label">Phone</span>
+        <input
+          class="user-detail__input"
+          type="tel"
+          [value]="phoneDraft()"
+          (input)="onFieldInput('phone', $any($event.target).value)"
+          [disabled]="busy()"
+        />
+      </label>
+      <label class="user-detail__field">
+        <span class="user-detail__label">First name</span>
+        <input
+          class="user-detail__input"
+          type="text"
+          [value]="firstNameDraft()"
+          (input)="onFieldInput('firstName', $any($event.target).value)"
+          [disabled]="busy()"
+        />
+      </label>
+      <label class="user-detail__field">
+        <span class="user-detail__label">Last name</span>
+        <input
+          class="user-detail__input"
+          type="text"
+          [value]="lastNameDraft()"
+          (input)="onFieldInput('lastName', $any($event.target).value)"
+          [disabled]="busy()"
+        />
+      </label>
+    </div>
+    <div class="user-detail__edit-actions">
+      <button
+        type="button"
+        class="user-detail__primary"
+        (click)="saveProfile()"
+        [disabled]="busy() || !editDirty()"
+      >
+        {{ busy() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </div>
+  </section>
+  }
+
+  @if (actionError(); as ae) {
+  <p class="user-detail__action-error">{{ ae }}</p>
+  }
+
+  <section class="user-detail__wallets">
+    <h2 class="user-detail__section-title">Wallets</h2>
+    @if (u.wallets.length === 0) {
+    <div class="user-detail__empty">No wallets.</div>
+    } @else {
+    <div class="user-detail__table-wrap">
+      <table class="user-detail__table">
+        <thead>
+        <tr>
+          <th scope="col">Currency</th>
+          <th scope="col" class="user-detail__cell--right">Balance</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="user-detail__cell--chevron" aria-label="Open"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (wallet of u.wallets; track wallet.id) {
+        <tr class="user-detail__row">
+          <td class="user-detail__currency">
+            <a
+              class="user-detail__link"
+              [routerLink]="['/wallets', wallet.id]"
+            >
+              {{ wallet.currency }}
+            </a>
+          </td>
+          <td class="user-detail__cell--right">
+            {{ formatAmount(wallet.balance, wallet.currency) }}
+          </td>
+          <td>
+                    <span
+                      class="user-detail__status"
+                      [class]="statusClass(wallet.status)"
+                    >
+                      {{ wallet.status }}
+                    </span>
+          </td>
+          <td class="user-detail__cell--chevron">
+            <span aria-hidden="true">›</span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+  }
 </section>

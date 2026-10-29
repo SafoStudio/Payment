@@ -1,0 +1,60 @@
+query User($id: ID!) {
+  user(id: $id) {
+    id
+    email
+    phone
+    firstName
+    lastName
+    fullName
+    roles
+    status
+    hasPasskey
+    createdAt
+    updatedAt
+    wallets {
+      id
+      currency
+      balance
+      status
+    }
+  }
+}
+
+mutation BlockUser($id: ID!) {
+  blockUser(id: $id) {
+    id
+    status
+  }
+}
+
+mutation ActivateUser($id: ID!) {
+  activateUser(id: $id) {
+    id
+    status
+  }
+}
+
+mutation DeleteUser($id: ID!) {
+  deleteUser(id: $id) {
+    id
+    status
+  }
+}
+
+mutation AssignRoles($userId: ID!, $roleCodes: [String!]!) {
+  assignRoles(userId: $userId, roleCodes: $roleCodes) {
+    id
+    roles
+  }
+}
+
+mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
+  updateUser(id: $id, input: $input) {
+    id
+    email
+    phone
+    firstName
+    lastName
+    fullName
+  }
+}
