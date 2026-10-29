@@ -85,3 +85,7 @@ Thumbs.db
 ### Misc ###
 HELP.md
 note.md
+
+### Codegen ###
+client/src/app/core/graphql/schema-types.ts
+client/src/app/core/graphql/documents.ts
