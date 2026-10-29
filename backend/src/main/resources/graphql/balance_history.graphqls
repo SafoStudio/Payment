@@ -1,0 +1,21 @@
+type BalanceHistoryEntry {
+    id: ID!
+    walletId: ID!
+    previousBalance: String!
+    newBalance: String!
+    delta: String!
+    transactionId: ID!
+    operationType: String!
+    currency: String!
+    createdAt: String!
+}
+
+type BalanceHistoryPage {
+    items: [BalanceHistoryEntry!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
+extend type Query {
+    balanceHistory(walletId: ID!, limit: Int = 20, after: String): BalanceHistoryPage!
+}

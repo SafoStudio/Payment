@@ -4,6 +4,8 @@ import com.safostudio.payment.fee.domain.Fee;
 import com.safostudio.payment.fee.dto.CalculateFeeRequest;
 import com.safostudio.payment.fee.service.FeeCalculator;
 import com.safostudio.payment.fee.service.FeeService;
+import com.safostudio.payment.ledger.balance.domain.BalanceHistory;
+import com.safostudio.payment.ledger.balance.repository.BalanceHistoryRepository;
 import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
 import com.safostudio.payment.ledger.transaction.domain.Transaction;
 import com.safostudio.payment.ledger.transaction.repository.TransactionRepository;
@@ -36,6 +38,7 @@ public class TransferService {
 
   private final WalletRepository walletRepository;
   private final TransactionRepository transactionRepository;
+  private final BalanceHistoryRepository balanceHistoryRepository;
   private final IdempotencyService idempotencyService;
   private final FeeCalculator feeCalculator;
   private final FeeService feeService;
@@ -82,6 +85,9 @@ public class TransferService {
     Transaction savedTransaction = transactionRepository.save(transaction);
 
     try {
+      BigDecimal fromPrevious = fromWallet.getBalance();
+      BigDecimal toPrevious = toWallet.getBalance();
+
       fromWallet.debit(request.getAmount());
       toWallet.credit(request.getAmount());
 
@@ -90,6 +96,23 @@ public class TransferService {
 
       savedTransaction.complete();
       transactionRepository.save(savedTransaction);
+
+      balanceHistoryRepository.save(BalanceHistory.create(
+              fromWallet.getId(),
+              fromPrevious,
+              fromWallet.getBalance(),
+              savedTransaction.getId(),
+              "TRANSFER_DEBIT",
+              fromWallet.getCurrency()
+      ));
+      balanceHistoryRepository.save(BalanceHistory.create(
+              toWallet.getId(),
+              toPrevious,
+              toWallet.getBalance(),
+              savedTransaction.getId(),
+              "TRANSFER_CREDIT",
+              toWallet.getCurrency()
+      ));
 
       applyFees(savedTransaction, request);
 
@@ -148,11 +171,22 @@ public class TransferService {
     Transaction savedTransaction = transactionRepository.save(transaction);
 
     try {
+      BigDecimal previous = wallet.getBalance();
+
       wallet.credit(request.getAmount());
       walletRepository.save(wallet);
 
       savedTransaction.complete();
       transactionRepository.save(savedTransaction);
+
+      balanceHistoryRepository.save(BalanceHistory.create(
+              wallet.getId(),
+              previous,
+              wallet.getBalance(),
+              savedTransaction.getId(),
+              "TOP_UP_CREDIT",
+              wallet.getCurrency()
+      ));
 
       TransactionResponse response = TransactionResponse.fromDomain(savedTransaction);
       idempotencyService.complete(OPERATION_TOP_UP, key, savedTransaction.getId().toString());
@@ -197,7 +231,7 @@ public class TransferService {
     List<Fee> feesWithTransaction = new ArrayList<>(fees.size());
     for (Fee fee : fees) {
       feesWithTransaction.add(withParentTransaction(fee, parentTransaction.getId()));
-      applyFeeToWallets(fee);
+      applyFeeToWallets(fee, parentTransaction.getId());
       createFeeTransaction(fee, parentTransaction);
     }
 
@@ -219,18 +253,36 @@ public class TransferService {
             .build();
   }
 
-  private void applyFeeToWallets(Fee fee) {
+  private void applyFeeToWallets(Fee fee, UUID parentTransactionId) {
     if (fee.getFromWalletId() != null) {
       Wallet from = walletRepository.findById(fee.getFromWalletId())
               .orElseThrow(() -> BusinessException.walletNotFound(fee.getFromWalletId()));
+      BigDecimal fromPrevious = from.getBalance();
       from.debit(fee.getAmount());
       walletRepository.save(from);
+      balanceHistoryRepository.save(BalanceHistory.create(
+              from.getId(),
+              fromPrevious,
+              from.getBalance(),
+              parentTransactionId,
+              "FEE_DEBIT",
+              from.getCurrency()
+      ));
     }
     if (fee.getToWalletId() != null) {
       Wallet to = walletRepository.findById(fee.getToWalletId())
               .orElseThrow(() -> BusinessException.walletNotFound(fee.getToWalletId()));
+      BigDecimal toPrevious = to.getBalance();
       to.credit(fee.getAmount());
       walletRepository.save(to);
+      balanceHistoryRepository.save(BalanceHistory.create(
+              to.getId(),
+              toPrevious,
+              to.getBalance(),
+              parentTransactionId,
+              "FEE_CREDIT",
+              to.getCurrency()
+      ));
     }
   }
 
