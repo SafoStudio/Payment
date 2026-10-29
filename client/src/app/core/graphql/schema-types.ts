@@ -9,6 +9,26 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type BalanceHistoryEntry = {
+  __typename?: 'BalanceHistoryEntry';
+  createdAt: Scalars['String']['output'];
+  currency: Scalars['String']['output'];
+  delta: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  newBalance: Scalars['String']['output'];
+  operationType: Scalars['String']['output'];
+  previousBalance: Scalars['String']['output'];
+  transactionId: Scalars['ID']['output'];
+  walletId: Scalars['ID']['output'];
+};
+
+export type BalanceHistoryPage = {
+  __typename?: 'BalanceHistoryPage';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<BalanceHistoryEntry>;
+  nextCursor?: Maybe<Scalars['String']['output']>;
+};
+
 export type CreateFeeRuleInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   feeType: FeeType;
@@ -298,6 +318,7 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['Boolean']['output']>;
   activeUsers: Array<User>;
+  balanceHistory: BalanceHistoryPage;
   feeRule?: Maybe<FeeRule>;
   feeRules: Array<FeeRule>;
   feeRulesByType: Array<FeeRule>;
@@ -321,6 +342,13 @@ export type Query = {
   walletTransactions: Array<Transaction>;
   wallets: Array<Wallet>;
   walletsByUserId: Array<Wallet>;
+};
+
+
+export type QueryBalanceHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  walletId: Scalars['ID']['input'];
 };
 
 

@@ -1,0 +1,61 @@
+query Wallet($id: ID!) {
+  wallet(id: $id) {
+    id
+    userId
+    balance
+    currency
+    status
+    createdAt
+    updatedAt
+  }
+}
+
+query BalanceHistory($walletId: ID!, $limit: Int, $after: String) {
+  balanceHistory(walletId: $walletId, limit: $limit, after: $after) {
+    items {
+      id
+      walletId
+      previousBalance
+      newBalance
+      delta
+      transactionId
+      operationType
+      currency
+      createdAt
+    }
+    nextCursor
+    hasMore
+  }
+}
+
+mutation TopUp($input: TopUpInput!) {
+  topUp(input: $input) {
+    id
+    amount
+    currency
+    type
+    status
+    createdAt
+  }
+}
+
+mutation BlockWallet($id: ID!) {
+  blockWallet(id: $id) {
+    id
+    status
+  }
+}
+
+mutation UnblockWallet($id: ID!) {
+  unblockWallet(id: $id) {
+    id
+    status
+  }
+}
+
+mutation CloseWallet($id: ID!) {
+  closeWallet(id: $id) {
+    id
+    status
+  }
+}

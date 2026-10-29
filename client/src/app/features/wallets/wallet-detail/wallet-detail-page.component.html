@@ -1,18 +1,197 @@
 <section class="wallet-detail">
   <header class="wallet-detail__header">
-    <button
-      type="button"
-      class="wallet-detail__back"
-      (click)="back()"
-    >
+    <button type="button" class="wallet-detail__back" (click)="goBack()">
       ‹ Back to wallets
     </button>
     <h1 class="wallet-detail__title">Wallet</h1>
   </header>
 
-  <div class="wallet-detail__placeholder">
-    <p class="wallet-detail__label">Wallet ID</p>
-    <p class="wallet-detail__id">{{ walletId }}</p>
-    <p class="wallet-detail__hint">Wallet details will appear here.</p>
+  @if (walletError(); as err) {
+  <div class="wallet-detail__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="wallet-detail__retry" (click)="reloadWallet()">
+      Try again
+    </button>
   </div>
+  } @else if (walletLoading()) {
+  <div class="wallet-detail__loading">Loading wallet…</div>
+  } @else if (wallet(); as w) {
+  <div class="wallet-detail__summary">
+    <div class="wallet-detail__summary-cell">
+      <span class="wallet-detail__label">Currency</span>
+      <span class="wallet-detail__value">{{ w.currency }}</span>
+    </div>
+    <div class="wallet-detail__summary-cell">
+      <span class="wallet-detail__label">Balance</span>
+      <span class="wallet-detail__balance">
+          {{ formatAmount(w.balance, w.currency) }}
+        </span>
+    </div>
+    <div class="wallet-detail__summary-cell">
+      <span class="wallet-detail__label">Status</span>
+      <span class="wallet-detail__status" [class]="statusClass(w.status)">
+          {{ w.status }}
+        </span>
+    </div>
+    <div class="wallet-detail__summary-cell">
+      <span class="wallet-detail__label">Updated</span>
+      <span class="wallet-detail__value">{{ formatDate(w.updatedAt) }}</span>
+    </div>
+  </div>
+
+  @if (canManage()) {
+  <div class="wallet-detail__actions">
+    @if (isActive()) {
+    <button
+      type="button"
+      class="wallet-detail__action wallet-detail__action--danger"
+      (click)="changeStatus('block')"
+      [disabled]="statusBusy()"
+    >
+      Block
+    </button>
+    <button
+      type="button"
+      class="wallet-detail__action wallet-detail__action--danger"
+      (click)="changeStatus('close')"
+      [disabled]="statusBusy()"
+    >
+      Close
+    </button>
+    }
+    @if (isBlocked()) {
+    <button
+      type="button"
+      class="wallet-detail__action"
+      (click)="changeStatus('unblock')"
+      [disabled]="statusBusy()"
+    >
+      Unblock
+    </button>
+    }
+    @if (statusError(); as se) {
+    <p class="wallet-detail__action-error">{{ se }}</p>
+    }
+  </div>
+  }
+
+  @if (!isClosed()) {
+  <form class="wallet-detail__topup" (submit)="$event.preventDefault(); topUp()">
+    <label class="wallet-detail__topup-label" for="topup-amount">
+      Top up amount ({{ w.currency }})
+    </label>
+    <div class="wallet-detail__topup-row">
+      <input
+        id="topup-amount"
+        type="text"
+        inputmode="decimal"
+        class="wallet-detail__topup-input"
+        [value]="topUpAmount()"
+        (input)="onTopUpAmountInput($any($event.target).value)"
+        [disabled]="topUpBusy()"
+        placeholder="0.00"
+        autocomplete="off"
+      />
+      <button
+        type="submit"
+        class="wallet-detail__topup-button"
+        [disabled]="topUpBusy() || !topUpAmount()"
+      >
+        {{ topUpBusy() ? 'Processing…' : 'Top up' }}
+      </button>
+    </div>
+    @if (topUpError(); as te) {
+    <p class="wallet-detail__topup-error">{{ te }}</p>
+    }
+  </form>
+  }
+
+  <section class="wallet-detail__history">
+    <header class="wallet-detail__history-header">
+      <h2 class="wallet-detail__history-title">Balance history</h2>
+      <button
+        type="button"
+        class="wallet-detail__history-refresh"
+        (click)="reloadHistory()"
+        [disabled]="historyLoading()"
+      >
+        {{ historyLoading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </header>
+
+    @if (historyError(); as herr) {
+    <div class="wallet-detail__error" role="alert">
+      <p>{{ herr.message }}</p>
+      <button
+        type="button"
+        class="wallet-detail__retry"
+        (click)="reloadHistory()"
+      >
+        Try again
+      </button>
+    </div>
+    } @else if (historyLoading()) {
+    <div class="wallet-detail__loading">Loading history…</div>
+    } @else if (historyEmpty()) {
+    <div class="wallet-detail__empty">No movements yet.</div>
+    } @else {
+    <div class="wallet-detail__table-wrap">
+      <table class="wallet-detail__table">
+        <thead>
+        <tr>
+          <th scope="col">Created</th>
+          <th scope="col">Operation</th>
+          <th scope="col" class="wallet-detail__cell--right">Delta</th>
+          <th scope="col" class="wallet-detail__cell--right">Previous</th>
+          <th scope="col" class="wallet-detail__cell--right">New</th>
+          <th scope="col" class="wallet-detail__cell--chevron" aria-label="Transaction"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (row of history(); track row.id) {
+        <tr class="wallet-detail__row">
+          <td class="wallet-detail__created">
+            <a
+              class="wallet-detail__link"
+              [routerLink]="['/transactions', row.transactionId]"
+            >
+              {{ formatDate(row.createdAt) }}
+            </a>
+          </td>
+          <td>{{ operationLabel(row.operationType) }}</td>
+          <td class="wallet-detail__cell--right">
+                    <span class="wallet-detail__delta" [class]="operationClass(row.operationType)">
+                      {{ formatDelta(row.delta, row.currency) }}
+                    </span>
+          </td>
+          <td class="wallet-detail__cell--right wallet-detail__muted">
+            {{ formatAmount(row.previousBalance, row.currency) }}
+          </td>
+          <td class="wallet-detail__cell--right">
+            {{ formatAmount(row.newBalance, row.currency) }}
+          </td>
+          <td class="wallet-detail__cell--chevron">
+            <span aria-hidden="true">›</span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+
+    @if (historyHasMore()) {
+    <div class="wallet-detail__more">
+      <button
+        type="button"
+        class="wallet-detail__load-more"
+        (click)="loadMoreHistory()"
+        [disabled]="historyLoadingMore()"
+      >
+        {{ historyLoadingMore() ? 'Loading…' : 'Load more' }}
+      </button>
+    </div>
+    }
+    }
+  </section>
+  }
 </section>
