@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +22,8 @@ public interface WalletRepository extends CrudRepository<Wallet, UUID> {
   boolean existsByUserId(UUID userId);
 
   boolean existsByUserIdAndCurrency(UUID userId, String currency);
+
+  Optional<Wallet> findByUserIdAndCurrency(UUID userId, String currency);
 
   @Query("SELECT * FROM wallets WHERE user_id IS NOT NULL")
   List<Wallet> findAllUserWallets();

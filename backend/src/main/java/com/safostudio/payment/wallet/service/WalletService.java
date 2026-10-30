@@ -1,6 +1,7 @@
 package com.safostudio.payment.wallet.service;
 
 import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.user.repository.UserRepository;
 import com.safostudio.payment.user.domain.User;
@@ -11,6 +12,9 @@ import com.safostudio.payment.wallet.dto.CreateWalletRequest;
 import com.safostudio.payment.wallet.dto.WalletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +28,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WalletService {
 
+  private static final String ADMIN_ROLE = "ROLE_ADMIN";
+
   private final WalletRepository walletRepository;
   private final UserRepository userRepository;
 
@@ -31,8 +37,11 @@ public class WalletService {
   public WalletResponse createWallet(CreateWalletRequest request) {
     MoneyUtils.validateCurrency(request.getCurrency());
 
-    if (request.getInitialBalance() != null && request.getInitialBalance().compareTo(BigDecimal.ZERO) < 0) {
-      throw BusinessException.invalidInitialBalance(request.getInitialBalance());
+    if (!currentUserIsAdmin()) {
+      UUID currentUserId = currentUserIdOrNull();
+      if (currentUserId == null || !currentUserId.equals(request.getUserId())) {
+        throw BusinessException.validationError("Cannot create a wallet for another user");
+      }
     }
 
     User user = userRepository.findById(request.getUserId())
@@ -48,7 +57,7 @@ public class WalletService {
 
     Wallet wallet = Wallet.builder()
             .userId(request.getUserId())
-            .balance(request.getInitialBalance() != null ? request.getInitialBalance() : BigDecimal.ZERO)
+            .balance(BigDecimal.ZERO)
             .currency(request.getCurrency())
             .status(WalletStatus.ACTIVE)
             .createdAt(Instant.now())
@@ -56,7 +65,6 @@ public class WalletService {
             .build();
 
     Wallet saved = walletRepository.save(wallet);
-
     return WalletResponse.fromDomain(saved);
   }
 
@@ -140,5 +148,22 @@ public class WalletService {
     if (!user.isActive()) {
       throw BusinessException.userNotActive(userId, user.getStatus());
     }
+  }
+
+  private boolean currentUserIsAdmin() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null) return false;
+    for (GrantedAuthority a : auth.getAuthorities()) {
+      if (ADMIN_ROLE.equals(a.getAuthority())) return true;
+    }
+    return false;
+  }
+
+  private UUID currentUserIdOrNull() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !(auth.getPrincipal() instanceof AppUserDetails principal)) {
+      return null;
+    }
+    return principal.getUserId();
   }
 }

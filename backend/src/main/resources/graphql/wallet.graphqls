@@ -17,7 +17,6 @@ enum WalletStatus {
 input CreateWalletInput {
     userId: ID!
     currency: String!
-    initialBalance: String
 }
 
 extend type Query {
