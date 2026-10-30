@@ -7,6 +7,7 @@ import com.safostudio.payment.payment.service.PaymentService;
 import com.safostudio.payment.payment.dto.CreatePaymentRequest;
 import com.safostudio.payment.payment.dto.PaymentPageResponse;
 import com.safostudio.payment.payment.dto.PaymentResponse;
+import com.safostudio.payment.shared.config.SystemWalletsProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -23,16 +24,17 @@ import java.util.UUID;
 public class PaymentController {
 
   private final PaymentService paymentService;
+  private final SystemWalletsProperties systemWalletsProperties;
 
   @PreAuthorize("hasAuthority('payment:create')")
   @MutationMapping
   public PaymentResponse createPayment(@Argument CreatePaymentInput input) {
     CreatePaymentRequest request = CreatePaymentRequest.builder()
-            .walletId(input.walletId())
+            .walletId(systemWalletsProperties.getCustomerWalletId())
             .targetWalletId(input.targetWalletId())
             .amount(input.amount())
             .currency(input.currency())
-            .type(PaymentType.TRANSFER)
+            .type(PaymentType.PAYMENT)
             .idempotencyKey(input.idempotencyKey())
             .description(input.description())
             .build();

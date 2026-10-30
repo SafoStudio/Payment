@@ -9,11 +9,9 @@ import com.safostudio.payment.ledger.balance.repository.BalanceHistoryRepository
 import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
 import com.safostudio.payment.ledger.transaction.domain.Transaction;
 import com.safostudio.payment.ledger.transaction.repository.TransactionRepository;
-import com.safostudio.payment.shared.config.SystemWalletsProperties;
 import com.safostudio.payment.shared.exception.BusinessException;
 import com.safostudio.payment.shared.util.MoneyUtils;
 import com.safostudio.payment.wallet.domain.Wallet;
-import com.safostudio.payment.ledger.transaction.dto.TopUpRequest;
 import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.wallet.repository.WalletRepository;
@@ -34,7 +32,6 @@ import java.util.UUID;
 public class TransferService {
 
   private static final String OPERATION_TRANSFER = "TRANSFER";
-  private static final String OPERATION_TOP_UP = "TOP_UP";
 
   private final WalletRepository walletRepository;
   private final TransactionRepository transactionRepository;
@@ -42,7 +39,6 @@ public class TransferService {
   private final IdempotencyService idempotencyService;
   private final FeeCalculator feeCalculator;
   private final FeeService feeService;
-  private final SystemWalletsProperties systemWalletsProperties;
 
   @Transactional
   public TransactionResponse transfer(TransferRequest request) {
@@ -124,78 +120,6 @@ public class TransferService {
       throw e;
     } catch (Exception e) {
       log.error("Transfer failed for transaction {}", savedTransaction.getId(), e);
-      throw BusinessException.transactionFailed(savedTransaction.getId());
-    }
-  }
-
-  @Transactional
-  public TransactionResponse topUp(TopUpRequest request) {
-    MoneyUtils.validateAmount(request.getAmount());
-    MoneyUtils.validateCurrency(request.getCurrency());
-
-    String key = request.getIdempotencyKey();
-    String fingerprint = idempotencyService.fingerprint(new TopUpFingerprint(
-            request.getWalletId(),
-            request.getAmount(),
-            request.getCurrency()
-    ));
-
-    IdempotencyService.Result idem = idempotencyService.tryStart(OPERATION_TOP_UP, key, fingerprint);
-    switch (idem.outcome()) {
-      case REPLAY -> {
-        return replayTransaction(idem.response(), key);
-      }
-      case IN_PROGRESS -> throw BusinessException.idempotencyInProgress(key);
-      case MISMATCH -> throw BusinessException.idempotencyKeyReuse(key);
-      case PROCEED -> { /* continue */ }
-    }
-
-    Wallet wallet = walletRepository.findById(request.getWalletId())
-            .orElseThrow(() -> BusinessException.walletNotFound(request.getWalletId()));
-
-    if (!wallet.getCurrency().equals(request.getCurrency())) {
-      throw BusinessException.currencyMismatch(wallet.getCurrency(), request.getCurrency());
-    }
-    if (!wallet.isActive()) {
-      throw BusinessException.walletNotActiveById(wallet.getId());
-    }
-
-    Transaction transaction = Transaction.createTopUp(
-            systemWalletsProperties.getTopupWalletId(),
-            wallet.getId(),
-            request.getAmount(),
-            request.getCurrency(),
-            request.getDescription()
-    );
-
-    Transaction savedTransaction = transactionRepository.save(transaction);
-
-    try {
-      BigDecimal previous = wallet.getBalance();
-
-      wallet.credit(request.getAmount());
-      walletRepository.save(wallet);
-
-      savedTransaction.complete();
-      transactionRepository.save(savedTransaction);
-
-      balanceHistoryRepository.save(BalanceHistory.create(
-              wallet.getId(),
-              previous,
-              wallet.getBalance(),
-              savedTransaction.getId(),
-              "TOP_UP_CREDIT",
-              wallet.getCurrency()
-      ));
-
-      TransactionResponse response = TransactionResponse.fromDomain(savedTransaction);
-      idempotencyService.complete(OPERATION_TOP_UP, key, savedTransaction.getId().toString());
-      return response;
-
-    } catch (BusinessException e) {
-      throw e;
-    } catch (Exception e) {
-      log.error("Top-up failed for transaction {}", savedTransaction.getId(), e);
       throw BusinessException.transactionFailed(savedTransaction.getId());
     }
   }
@@ -357,5 +281,4 @@ public class TransferService {
   }
 
   private record TransferFingerprint(UUID fromWalletId, UUID toWalletId, BigDecimal amount, String currency) {}
-  private record TopUpFingerprint(UUID walletId, BigDecimal amount, String currency) {}
 }

@@ -25,23 +25,6 @@ enum TransactionStatus {
     CANCELLED
 }
 
-input TransferInput {
-    fromWalletId: ID!
-    toWalletId: ID!
-    amount: String!
-    currency: String!
-    description: String
-    idempotencyKey: String!
-}
-
-input TopUpInput {
-    walletId: ID!
-    amount: String!
-    currency: String!
-    description: String
-    idempotencyKey: String!
-}
-
 input TransactionFilterInput {
     type: TransactionType
     status: TransactionStatus
@@ -58,9 +41,4 @@ extend type Query {
     transaction(id: ID!): Transaction!
     walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
     transactions(filter: TransactionFilterInput, limit: Int = 20, after: String): TransactionPage!
-}
-
-extend type Mutation {
-    transfer(input: TransferInput!): Transaction!
-    topUp(input: TopUpInput!): Transaction!
 }

@@ -13,6 +13,6 @@ import java.util.UUID;
 @ConfigurationProperties(prefix = "payment.system")
 public class SystemWalletsProperties {
 
-  private UUID topupWalletId;
+  private UUID customerWalletId;
   private UUID feeWalletId;
 }

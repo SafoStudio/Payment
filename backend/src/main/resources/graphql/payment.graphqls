@@ -37,7 +37,6 @@ enum PaymentType {
 }
 
 input CreatePaymentInput {
-    walletId: ID!
     targetWalletId: ID!
     amount: String!
     currency: String!

@@ -84,7 +84,7 @@ payment:
     ttl: 24h
     cleanup-interval: PT1H
   system:
-    topup-wallet-id: 00000000-0000-0000-0000-000000000001
+    customer-wallet-id: 00000000-0000-0000-0000-000000000001
     fee-wallet-id: 00000000-0000-0000-0000-000000000002
   transaction:
     max-amount: 1000000

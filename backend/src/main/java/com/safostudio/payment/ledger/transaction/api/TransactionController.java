@@ -1,17 +1,12 @@
 package com.safostudio.payment.ledger.transaction.api;
 
-import com.safostudio.payment.ledger.transaction.api.input.TopUpInput;
 import com.safostudio.payment.ledger.transaction.api.input.TransactionFilterInput;
-import com.safostudio.payment.ledger.transaction.api.input.TransferInput;
 import com.safostudio.payment.ledger.transaction.dto.TransactionPageResponse;
 import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
-import com.safostudio.payment.ledger.transaction.dto.TopUpRequest;
-import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.ledger.transaction.service.TransactionQueryService;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -25,33 +20,6 @@ public class TransactionController {
 
   private final TransferService transferService;
   private final TransactionQueryService transactionQueryService;
-
-  @PreAuthorize("hasAuthority('wallet:create')")
-  @MutationMapping
-  public TransactionResponse transfer(@Argument TransferInput input) {
-    TransferRequest request = TransferRequest.builder()
-            .fromWalletId(input.fromWalletId())
-            .toWalletId(input.toWalletId())
-            .amount(input.amount())
-            .currency(input.currency())
-            .description(input.description())
-            .idempotencyKey(input.idempotencyKey())
-            .build();
-    return transferService.transfer(request);
-  }
-
-  @PreAuthorize("hasAuthority('wallet:create')")
-  @MutationMapping
-  public TransactionResponse topUp(@Argument TopUpInput input) {
-    TopUpRequest request = TopUpRequest.builder()
-            .walletId(input.walletId())
-            .amount(input.amount())
-            .currency(input.currency())
-            .description(input.description())
-            .idempotencyKey(input.idempotencyKey())
-            .build();
-    return transferService.topUp(request);
-  }
 
   @PreAuthorize("hasAnyAuthority('transaction:read:all', 'transaction:read:own')")
   @QueryMapping
