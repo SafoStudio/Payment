@@ -1,18 +1,23 @@
 package com.safostudio.payment.ledger.transaction.api;
 
+import com.safostudio.payment.ledger.transaction.api.input.AdjustBalanceInput;
 import com.safostudio.payment.ledger.transaction.api.input.TransactionFilterInput;
+import com.safostudio.payment.ledger.transaction.dto.AdjustBalanceRequest;
 import com.safostudio.payment.ledger.transaction.dto.TransactionPageResponse;
 import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
 import com.safostudio.payment.ledger.transaction.service.TransactionQueryService;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,6 +25,24 @@ public class TransactionController {
 
   private final TransferService transferService;
   private final TransactionQueryService transactionQueryService;
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @MutationMapping
+  public TransactionResponse adjustBalance(@Argument AdjustBalanceInput input) {
+    ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    String ip = attrs != null ? attrs.getRequest().getRemoteAddr() : null;
+    String ua = attrs != null ? attrs.getRequest().getHeader("User-Agent") : null;
+
+    AdjustBalanceRequest request = AdjustBalanceRequest.builder()
+            .walletId(input.walletId())
+            .amount(input.amount())
+            .reason(input.reason())
+            .idempotencyKey(input.idempotencyKey())
+            .ipAddress(ip)
+            .userAgent(ua)
+            .build();
+    return transferService.adjustBalance(request);
+  }
 
   @PreAuthorize("hasAnyAuthority('transaction:read:all', 'transaction:read:own')")
   @QueryMapping

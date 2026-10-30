@@ -16,6 +16,7 @@ enum TransactionType {
     TOP_UP
     WITHDRAWAL
     REFUND
+    ADJUSTMENT
 }
 
 enum TransactionStatus {
@@ -31,6 +32,13 @@ input TransactionFilterInput {
     currency: String
 }
 
+input AdjustBalanceInput {
+    walletId: ID!
+    amount: String!
+    reason: String!
+    idempotencyKey: String!
+}
+
 type TransactionPage {
     items: [Transaction!]!
     nextCursor: String
@@ -41,4 +49,8 @@ extend type Query {
     transaction(id: ID!): Transaction!
     walletTransactions(walletId: ID!, limit: Int!): [Transaction!]!
     transactions(filter: TransactionFilterInput, limit: Int = 20, after: String): TransactionPage!
+}
+
+extend type Mutation {
+    adjustBalance(input: AdjustBalanceInput!): Transaction!
 }

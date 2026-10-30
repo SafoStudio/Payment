@@ -14,7 +14,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("audit_logs")
+@Table("audit_log")
 public class AuditLog {
 
     @Id

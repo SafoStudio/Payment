@@ -61,16 +61,21 @@ public class Transaction {
             .build();
   }
 
-  public static Transaction createTopUp(UUID systemRevenueWalletId, UUID walletId,
-                                        BigDecimal amount, String currency, String description) {
+  public static Transaction createAdjustment(UUID debitWalletId, UUID creditWalletId,
+                                             BigDecimal amount, String currency,
+                                             String description) {
     validateAmount(amount);
 
+    if (debitWalletId.equals(creditWalletId)) {
+      throw BusinessException.sameWallet();
+    }
+
     return Transaction.builder()
-            .debitWalletId(systemRevenueWalletId)
-            .creditWalletId(walletId)
+            .debitWalletId(debitWalletId)
+            .creditWalletId(creditWalletId)
             .amount(amount)
             .currency(currency)
-            .type(TransactionType.TOP_UP)
+            .type(TransactionType.ADJUSTMENT)
             .status(TransactionStatus.PENDING)
             .description(description)
             .createdAt(Instant.now())
@@ -92,31 +97,6 @@ public class Transaction {
       throw BusinessException.transactionNotPending(status);
     }
     this.status = TransactionStatus.FAILED;
-  }
-
-  public void cancel() {
-    if (status != TransactionStatus.PENDING) {
-      throw BusinessException.transactionNotPending(status);
-    }
-    this.status = TransactionStatus.CANCELLED;
-  }
-
-  public void validateType(TransactionType expected) {
-    if (this.type != expected) {
-      throw BusinessException.invalidTransactionType(expected, this.type);
-    }
-  }
-
-  public void validateStatus(TransactionStatus expected) {
-    if (this.status != expected) {
-      throw BusinessException.invalidTransactionStatus(expected, this.status);
-    }
-  }
-
-  public void validateCurrency(String expectedCurrency) {
-    if (!this.currency.equals(expectedCurrency)) {
-      throw BusinessException.currencyMismatch(expectedCurrency, this.currency);
-    }
   }
 
   public boolean isPending() {
