@@ -9,6 +9,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { gqlClient } from '@core/graphql/client';
 import {
+  AdjustBalanceDocument,
   BalanceHistoryDocument,
   BlockWalletDocument,
   CloseWalletDocument,
@@ -54,6 +55,12 @@ export class WalletDetailPageComponent implements OnInit {
   private readonly _statusBusy = signal(false);
   private readonly _statusError = signal<string | null>(null);
 
+  private readonly _adjustOpen = signal(false);
+  private readonly _adjustAmount = signal('');
+  private readonly _adjustReason = signal('');
+  private readonly _adjustBusy = signal(false);
+  private readonly _adjustError = signal<string | null>(null);
+
   readonly wallet = this._wallet.asReadonly();
   readonly walletLoading = this._walletLoading.asReadonly();
   readonly walletError = this._walletError.asReadonly();
@@ -67,7 +74,14 @@ export class WalletDetailPageComponent implements OnInit {
   readonly statusBusy = this._statusBusy.asReadonly();
   readonly statusError = this._statusError.asReadonly();
 
+  readonly adjustOpen = this._adjustOpen.asReadonly();
+  readonly adjustAmount = this._adjustAmount.asReadonly();
+  readonly adjustReason = this._adjustReason.asReadonly();
+  readonly adjustBusy = this._adjustBusy.asReadonly();
+  readonly adjustError = this._adjustError.asReadonly();
+
   readonly canManage = computed(() => this.auth.hasPermission('wallet:block'));
+  readonly canAdjust = computed(() => this.auth.hasRole('ADMIN'));
   readonly isActive = computed(() => this._wallet()?.status === 'ACTIVE');
   readonly isBlocked = computed(() => this._wallet()?.status === 'BLOCKED');
   readonly isClosed = computed(() => this._wallet()?.status === 'CLOSED');
@@ -191,6 +205,70 @@ export class WalletDetailPageComponent implements OnInit {
     }
   }
 
+  openAdjust(): void {
+    this._adjustOpen.set(true);
+  }
+
+  closeAdjust(): void {
+    this._adjustOpen.set(false);
+    this._adjustAmount.set('');
+    this._adjustReason.set('');
+    this._adjustError.set(null);
+  }
+
+  onAdjustAmountInput(value: string): void {
+    this._adjustAmount.set(value);
+  }
+
+  onAdjustReasonInput(value: string): void {
+    this._adjustReason.set(value);
+  }
+
+  async submitAdjust(): Promise<void> {
+    if (this._adjustBusy()) return;
+
+    const raw = this._adjustAmount().trim().replace(',', '.');
+    if (!raw || !/^-?\d+(\.\d{1,4})?$/.test(raw)) {
+      this._adjustError.set('Enter a non-zero amount with up to 4 decimals.');
+      return;
+    }
+    if (Number(raw) === 0) {
+      this._adjustError.set('Amount must be non-zero.');
+      return;
+    }
+    const reason = this._adjustReason().trim();
+    if (!reason) {
+      this._adjustError.set('Reason is required.');
+      return;
+    }
+
+    this._adjustBusy.set(true);
+    this._adjustError.set(null);
+    try {
+      const result = await gqlClient
+        .mutation(AdjustBalanceDocument, {
+          input: {
+            walletId: this.walletId,
+            amount: raw,
+            reason,
+            idempotencyKey: crypto.randomUUID(),
+          },
+        })
+        .toPromise();
+
+      if (result.error) {
+        this._adjustError.set(toAppError(result.error).message);
+      } else {
+        this.closeAdjust();
+        await Promise.all([this.reloadWallet(), this.reloadHistory()]);
+      }
+    } catch (e) {
+      this._adjustError.set(toAppError(e).message);
+    } finally {
+      this._adjustBusy.set(false);
+    }
+  }
+
   formatAmount(amount: string, currency: string): string {
     const value = Number(amount);
     if (!Number.isFinite(value)) return amount;
@@ -232,6 +310,10 @@ export class WalletDetailPageComponent implements OnInit {
         return 'Fee charged';
       case 'FEE_CREDIT':
         return 'Fee received';
+      case 'ADJUSTMENT_DEBIT':
+        return 'Adjustment (debit)';
+      case 'ADJUSTMENT_CREDIT':
+        return 'Adjustment (credit)';
       default:
         return type;
     }

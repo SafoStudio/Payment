@@ -28,6 +28,18 @@ query BalanceHistory($walletId: ID!, $limit: Int, $after: String) {
   }
 }
 
+mutation AdjustBalance($input: AdjustBalanceInput!) {
+  adjustBalance(input: $input) {
+    id
+    amount
+    currency
+    type
+    status
+    description
+    createdAt
+  }
+}
+
 mutation BlockWallet($id: ID!) {
   blockWallet(id: $id) {
     id

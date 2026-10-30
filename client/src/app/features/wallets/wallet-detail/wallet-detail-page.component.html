@@ -39,8 +39,9 @@
     </div>
   </div>
 
-  @if (canManage()) {
+  @if (canManage() || canAdjust()) {
   <div class="wallet-detail__actions">
+    @if (canManage()) {
     @if (isActive()) {
     <button
       type="button"
@@ -69,10 +70,76 @@
       Unblock
     </button>
     }
+    }
+    @if (canAdjust() && !isClosed()) {
+    <button
+      type="button"
+      class="wallet-detail__action wallet-detail__action--danger"
+      (click)="openAdjust()"
+    >
+      Adjust balance
+    </button>
+    }
     @if (statusError(); as se) {
     <p class="wallet-detail__action-error">{{ se }}</p>
     }
   </div>
+  }
+
+  @if (adjustOpen()) {
+  <form class="wallet-detail__adjust" (submit)="$event.preventDefault(); submitAdjust()">
+    <h3 class="wallet-detail__adjust-title">Adjust balance</h3>
+    <p class="wallet-detail__adjust-hint">
+      Positive amount credits, negative debits. Reason is required.
+    </p>
+    <div class="wallet-detail__adjust-row">
+      <label class="wallet-detail__adjust-field wallet-detail__adjust-field--grow">
+        <span class="wallet-detail__adjust-label">Amount ({{ w.currency }})</span>
+        <input
+          class="wallet-detail__adjust-input"
+          type="text"
+          inputmode="decimal"
+          [value]="adjustAmount()"
+          (input)="onAdjustAmountInput($any($event.target).value)"
+          [disabled]="adjustBusy()"
+          placeholder="100.00 or -100.00"
+          autocomplete="off"
+        />
+      </label>
+      <label class="wallet-detail__adjust-field wallet-detail__adjust-field--grow">
+        <span class="wallet-detail__adjust-label">Reason</span>
+        <input
+          class="wallet-detail__adjust-input"
+          type="text"
+          [value]="adjustReason()"
+          (input)="onAdjustReasonInput($any($event.target).value)"
+          [disabled]="adjustBusy()"
+          placeholder="Compensation, correction, ..."
+          autocomplete="off"
+        />
+      </label>
+    </div>
+    <div class="wallet-detail__adjust-actions">
+      <button
+        type="submit"
+        class="wallet-detail__adjust-submit"
+        [disabled]="adjustBusy() || !adjustAmount() || !adjustReason()"
+      >
+        {{ adjustBusy() ? 'Adjusting…' : 'Adjust' }}
+      </button>
+      <button
+        type="button"
+        class="wallet-detail__action"
+        (click)="closeAdjust()"
+        [disabled]="adjustBusy()"
+      >
+        Cancel
+      </button>
+    </div>
+    @if (adjustError(); as ae) {
+    <p class="wallet-detail__action-error">{{ ae }}</p>
+    }
+  </form>
   }
 
   <section class="wallet-detail__history">
