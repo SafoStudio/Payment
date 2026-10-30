@@ -75,37 +75,6 @@
   </div>
   }
 
-  @if (!isClosed()) {
-  <form class="wallet-detail__topup" (submit)="$event.preventDefault(); topUp()">
-    <label class="wallet-detail__topup-label" for="topup-amount">
-      Top up amount ({{ w.currency }})
-    </label>
-    <div class="wallet-detail__topup-row">
-      <input
-        id="topup-amount"
-        type="text"
-        inputmode="decimal"
-        class="wallet-detail__topup-input"
-        [value]="topUpAmount()"
-        (input)="onTopUpAmountInput($any($event.target).value)"
-        [disabled]="topUpBusy()"
-        placeholder="0.00"
-        autocomplete="off"
-      />
-      <button
-        type="submit"
-        class="wallet-detail__topup-button"
-        [disabled]="topUpBusy() || !topUpAmount()"
-      >
-        {{ topUpBusy() ? 'Processing…' : 'Top up' }}
-      </button>
-    </div>
-    @if (topUpError(); as te) {
-    <p class="wallet-detail__topup-error">{{ te }}</p>
-    }
-  </form>
-  }
-
   <section class="wallet-detail__history">
     <header class="wallet-detail__history-header">
       <h2 class="wallet-detail__history-title">Balance history</h2>

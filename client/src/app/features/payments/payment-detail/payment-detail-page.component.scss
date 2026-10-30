@@ -44,16 +44,25 @@
     color: var(--color-text);
   }
 
-  &__placeholder {
-    padding: var(--space-2xl);
-    border: 1px dashed var(--color-border);
+  &__summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
+  }
+
+  &__summary-cell {
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
-    align-items: center;
-    text-align: center;
+    min-width: 0;
+
+    &--wide {
+      grid-column: 1 / -1;
+    }
   }
 
   &__label {
@@ -63,17 +72,345 @@
     color: var(--color-text-muted);
   }
 
-  &__id {
+  &__value {
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    word-break: break-word;
+  }
+
+  &__amount {
+    font-family: var(--font-family);
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+  }
+
+  &__muted {
+    color: var(--color-text-muted);
+  }
+
+  &__mono {
     font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     font-size: var(--font-size-sm);
-    color: var(--color-text);
+    color: var(--color-text-muted);
     word-break: break-all;
   }
 
-  &__hint {
-    margin-top: var(--space-md);
+  &__link {
+    color: var(--color-text);
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
+  }
+
+  &__status {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+
+    &--succeeded {
+      background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+      color: var(--color-primary);
+    }
+
+    &--pending {
+      background: rgba(212, 163, 64, 0.18);
+      color: #a07a1f;
+    }
+
+    &--processing {
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+      color: var(--color-primary);
+    }
+
+    &--failed {
+      background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+      color: var(--color-danger);
+    }
+
+    &--refunded,
+    &--cancelled {
+      background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__action {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
     font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    &--danger {
+      &:hover:not(:disabled) {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+      }
+    }
+  }
+
+  &__action-error {
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+  }
+
+  &__refund-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  &__refund-title {
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+  }
+
+  &__refund-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--color-text-muted);
+  }
+
+  &__refund-input {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-md);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
+  }
+
+  &__refund-textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  &__refund-actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+
+  &__refund-submit {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-primary-text);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  &__refund-cancel {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  &__refund-error {
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+  }
+
+  &__refunds {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  &__refunds-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  &__refunds-title {
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+  }
+
+  &__refunds-refresh,
+  &__retry {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  &__error {
+    padding: var(--space-md);
+    border: 1px solid var(--color-danger);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-danger);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    align-items: flex-start;
+  }
+
+  &__loading,
+  &__empty {
+    padding: var(--space-2xl);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  &__table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+
+    th,
+    td {
+      padding: var(--space-sm) var(--space-md);
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+
+    th {
+      font-family: var(--font-family);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      font-size: var(--font-size-xs);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--color-bg-subtle);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: var(--color-bg-subtle);
+    }
+  }
+
+  &__row {
+    position: relative;
+  }
+
+  &__reason {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__cell--right {
+    text-align: right;
+  }
+
+  &__cell--chevron {
+    width: 32px;
+    text-align: right;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-md);
+    padding-right: var(--space-md);
   }
 }
 
@@ -88,6 +425,16 @@
     &__header {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    &__refunds-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    &__refund-actions {
+      flex-direction: column;
+      align-items: stretch;
     }
   }
 }

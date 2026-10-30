@@ -19,9 +19,7 @@
     </button>
   </div>
   } @else if (loading()) {
-  <div class="wallets__loading">
-    Loading wallets…
-  </div>
+  <div class="wallets__loading">Loading wallets…</div>
   } @else if (isEmpty()) {
   <div class="wallets__empty">
     <p>No wallets yet.</p>
@@ -58,7 +56,9 @@
                 </span>
         </td>
         <td>{{ formatDate(wallet.updatedAt) }}</td>
-        <td class="wallets__cell--chevron">›</td>
+        <td class="wallets__cell--chevron">
+          <span aria-hidden="true">›</span>
+        </td>
       </tr>
       }
       </tbody>

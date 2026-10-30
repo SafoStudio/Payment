@@ -40,12 +40,10 @@ export class WalletsPageComponent implements OnInit {
   async load(): Promise<void> {
     this._loading.set(true);
     this._error.set(null);
-
     try {
       const result = await gqlClient
         .query(WalletsDocument, {}, { requestPolicy: 'network-only' })
         .toPromise();
-
       if (result.error) {
         this._error.set(toAppError(result.error));
         this._wallets.set([]);

@@ -1,18 +1,252 @@
 <section class="payment-detail">
   <header class="payment-detail__header">
-    <button
-      type="button"
-      class="payment-detail__back"
-      (click)="back()"
-    >
+    <button type="button" class="payment-detail__back" (click)="back()">
       ‹ Back to payments
     </button>
     <h1 class="payment-detail__title">Payment</h1>
   </header>
 
-  <div class="payment-detail__placeholder">
-    <p class="payment-detail__label">Payment ID</p>
-    <p class="payment-detail__id">{{ paymentId }}</p>
-    <p class="payment-detail__hint">Payment details will appear here.</p>
+  @if (error(); as err) {
+  <div class="payment-detail__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="payment-detail__retry" (click)="load()">
+      Try again
+    </button>
   </div>
+  } @else if (loading()) {
+  <div class="payment-detail__loading">Loading payment…</div>
+  } @else if (payment(); as p) {
+  <div class="payment-detail__summary">
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Amount</span>
+      <span class="payment-detail__amount">
+          {{ formatAmount(p.amount, p.currency) }}
+        </span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Status</span>
+      <span class="payment-detail__status" [class]="statusClass(p.status)">
+          {{ p.status }}
+        </span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Type</span>
+      <span class="payment-detail__value">{{ typeLabel(p.type) }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Currency</span>
+      <span class="payment-detail__value">{{ p.currency }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Created</span>
+      <span class="payment-detail__value">{{ formatDate(p.createdAt) }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Updated</span>
+      <span class="payment-detail__value">{{ formatDate(p.updatedAt) }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Source wallet (system)</span>
+      <span class="payment-detail__mono">{{ p.walletId }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Target wallet</span>
+      <a class="payment-detail__link" [routerLink]="['/wallets', p.targetWalletId]">
+        {{ p.targetWalletId }}
+      </a>
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Transaction</span>
+      @if (p.transactionId) {
+      <a class="payment-detail__link" [routerLink]="['/transactions', p.transactionId]">
+        {{ p.transactionId }}
+      </a>
+      } @else {
+      <span class="payment-detail__value payment-detail__muted">—</span>
+      }
+    </div>
+    <div class="payment-detail__summary-cell payment-detail__summary-cell--wide">
+      <span class="payment-detail__label">Idempotency key</span>
+      <span class="payment-detail__mono">{{ p.idempotencyKey }}</span>
+    </div>
+    <div class="payment-detail__summary-cell payment-detail__summary-cell--wide">
+      <span class="payment-detail__label">Description</span>
+      <span class="payment-detail__value">
+          @if (p.description) {
+          {{ p.description }}
+          } @else {
+          <span class="payment-detail__muted">—</span>
+          }
+        </span>
+    </div>
+  </div>
+
+  @if (canProcess() || canCancel() || canCreateRefund()) {
+  <div class="payment-detail__actions">
+    @if (canProcess()) {
+    <button
+      type="button"
+      class="payment-detail__action"
+      (click)="process()"
+      [disabled]="actionBusy()"
+    >
+      {{ actionBusy() ? 'Processing…' : 'Process' }}
+    </button>
+    }
+    @if (canCancel()) {
+    <button
+      type="button"
+      class="payment-detail__action payment-detail__action--danger"
+      (click)="cancel()"
+      [disabled]="actionBusy()"
+    >
+      Cancel
+    </button>
+    }
+    @if (canCreateRefund()) {
+    <button
+      type="button"
+      class="payment-detail__action"
+      (click)="openRefundForm()"
+      [disabled]="actionBusy() || refundFormOpen()"
+    >
+      Refund
+    </button>
+    }
+    @if (actionError(); as ae) {
+    <p class="payment-detail__action-error">{{ ae }}</p>
+    }
+  </div>
+  }
+
+  @if (refundFormOpen()) {
+  <form
+    class="payment-detail__refund-form"
+    (submit)="$event.preventDefault(); submitRefund()"
+  >
+    <p class="payment-detail__refund-title">Create refund</p>
+    <label class="payment-detail__refund-label" for="refund-amount">
+      Amount ({{ p.currency }})
+    </label>
+    <input
+      id="refund-amount"
+      type="text"
+      inputmode="decimal"
+      class="payment-detail__refund-input"
+      [value]="refundAmount()"
+      (input)="onRefundAmountInput($any($event.target).value)"
+      [disabled]="actionBusy()"
+      placeholder="0.00"
+      autocomplete="off"
+    />
+    <label class="payment-detail__refund-label" for="refund-reason">
+      Reason (optional)
+    </label>
+    <textarea
+      id="refund-reason"
+      class="payment-detail__refund-input payment-detail__refund-textarea"
+      [value]="refundReason()"
+      (input)="onRefundReasonInput($any($event.target).value)"
+      [disabled]="actionBusy()"
+      maxlength="500"
+      rows="2"
+      placeholder="Why is this refund being issued?"
+    ></textarea>
+    <div class="payment-detail__refund-actions">
+      <button
+        type="submit"
+        class="payment-detail__refund-submit"
+        [disabled]="actionBusy() || !refundAmount()"
+      >
+        {{ actionBusy() ? 'Submitting…' : 'Submit refund' }}
+      </button>
+      <button
+        type="button"
+        class="payment-detail__refund-cancel"
+        (click)="closeRefundForm()"
+        [disabled]="actionBusy()"
+      >
+        Cancel
+      </button>
+    </div>
+    @if (refundError(); as re) {
+    <p class="payment-detail__refund-error">{{ re }}</p>
+    }
+  </form>
+  }
+
+  <section class="payment-detail__refunds">
+    <header class="payment-detail__refunds-header">
+      <h2 class="payment-detail__refunds-title">Refunds</h2>
+      <button
+        type="button"
+        class="payment-detail__refunds-refresh"
+        (click)="reloadRefunds()"
+        [disabled]="loading()"
+      >
+        Refresh
+      </button>
+    </header>
+
+    @if (refundsEmpty()) {
+    <div class="payment-detail__empty">No refunds yet.</div>
+    } @else {
+    <div class="payment-detail__table-wrap">
+      <table class="payment-detail__table">
+        <thead>
+        <tr>
+          <th scope="col">Created</th>
+          <th scope="col" class="payment-detail__cell--right">Amount</th>
+          <th scope="col">Status</th>
+          <th scope="col">Reason</th>
+          <th scope="col">Refund tx</th>
+          <th scope="col" class="payment-detail__cell--chevron" aria-label="Refund"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (row of refunds(); track row.id) {
+        <tr class="payment-detail__row">
+          <td>
+            <a class="payment-detail__link" [routerLink]="['/refunds', row.id]">
+              {{ formatDate(row.createdAt) }}
+            </a>
+          </td>
+          <td class="payment-detail__cell--right">
+            {{ formatAmount(row.amount, row.currency) }}
+          </td>
+          <td>
+            <span class="payment-detail__status" [class]="refundStatusClass(row.status)">
+              {{ row.status }}
+            </span>
+          </td>
+          <td class="payment-detail__reason">
+            @if (row.reason) {
+            {{ row.reason }}
+            } @else {
+            <span class="payment-detail__muted">—</span>
+            }
+          </td>
+          <td>
+            @if (row.refundTransactionId) {
+            <a
+              class="payment-detail__link"
+              [routerLink]="['/transactions', row.refundTransactionId]"
+            >
+              {{ row.refundTransactionId }}
+            </a>
+            } @else {
+            <span class="payment-detail__muted">—</span>
+            }
+          </td>
+          <td class="payment-detail__cell--chevron">
+            <span aria-hidden="true">›</span>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+  }
 </section>

@@ -12,15 +12,14 @@ import {
   BalanceHistoryDocument,
   BlockWalletDocument,
   CloseWalletDocument,
-  TopUpDocument,
   UnblockWalletDocument,
   WalletDocument,
   type BalanceHistoryQuery,
   type WalletQuery,
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
-import { AuthService } from '@core/auth/auth.service';
 import { type DocumentNode } from 'graphql';
+import { AuthService } from '@core/auth/auth.service';
 
 type Wallet = WalletQuery['wallet'];
 type HistoryRow = NonNullable<BalanceHistoryQuery['balanceHistory']['items']>[number];
@@ -52,9 +51,6 @@ export class WalletDetailPageComponent implements OnInit {
   private readonly _historyHasMore = signal(false);
   private readonly _historyCursor = signal<string | null>(null);
 
-  private readonly _topUpAmount = signal('');
-  private readonly _topUpBusy = signal(false);
-  private readonly _topUpError = signal<string | null>(null);
   private readonly _statusBusy = signal(false);
   private readonly _statusError = signal<string | null>(null);
 
@@ -68,9 +64,6 @@ export class WalletDetailPageComponent implements OnInit {
   readonly historyError = this._historyError.asReadonly();
   readonly historyHasMore = this._historyHasMore.asReadonly();
 
-  readonly topUpAmount = this._topUpAmount.asReadonly();
-  readonly topUpBusy = this._topUpBusy.asReadonly();
-  readonly topUpError = this._topUpError.asReadonly();
   readonly statusBusy = this._statusBusy.asReadonly();
   readonly statusError = this._statusError.asReadonly();
 
@@ -164,85 +157,39 @@ export class WalletDetailPageComponent implements OnInit {
     }
   }
 
-  onTopUpAmountInput(value: string): void {
-    this._topUpAmount.set(value);
-  }
-
-  async topUp(): Promise<void> {
-    const wallet = this._wallet();
-    if (!wallet || this._topUpBusy()) return;
-    const raw = this._topUpAmount().trim().replace(',', '.');
-    if (!raw || !/^\d+(\.\d{1,4})?$/.test(raw)) {
-      this._topUpError.set('Enter a positive amount with up to 4 decimals.');
-      return;
-    }
-    if (Number(raw) <= 0) {
-      this._topUpError.set('Amount must be greater than zero.');
-      return;
-    }
-
-    this._topUpBusy.set(true);
-    this._topUpError.set(null);
-
+  async changeStatus(kind: 'block' | 'unblock' | 'close'): Promise<void> {
+    if (this._statusBusy()) return;
+    this._statusBusy.set(true);
+    this._statusError.set(null);
     try {
+      let doc: DocumentNode;
+      switch (kind) {
+        case 'block':
+          doc = BlockWalletDocument;
+          break;
+        case 'unblock':
+          doc = UnblockWalletDocument;
+          break;
+        case 'close':
+          doc = CloseWalletDocument;
+          break;
+      }
+
       const result = await gqlClient
-        .mutation(TopUpDocument, {
-          input: {
-            walletId: wallet.id,
-            amount: raw,
-            currency: wallet.currency,
-            description: 'Top up from dashboard',
-            idempotencyKey: crypto.randomUUID(),
-          },
-        })
+        .mutation(doc, { id: this.walletId })
         .toPromise();
 
       if (result.error) {
-        this._topUpError.set(toAppError(result.error).message);
+        this._statusError.set(toAppError(result.error).message);
       } else {
-        this._topUpAmount.set('');
-        await Promise.all([this.reloadWallet(), this.reloadHistory()]);
+        await this.reloadWallet();
       }
     } catch (e) {
-      this._topUpError.set(toAppError(e).message);
+      this._statusError.set(toAppError(e).message);
     } finally {
-      this._topUpBusy.set(false);
+      this._statusBusy.set(false);
     }
   }
-
-   async changeStatus(kind: 'block' | 'unblock' | 'close'): Promise<void> {
-       if (this._statusBusy()) return;
-       this._statusBusy.set(true);
-       this._statusError.set(null);
-       try {
-         let doc: DocumentNode;
-         switch (kind) {
-           case 'block':
-             doc = BlockWalletDocument;
-             break;
-           case 'unblock':
-             doc = UnblockWalletDocument;
-             break;
-           case 'close':
-             doc = CloseWalletDocument;
-             break;
-         }
-
-         const result = await gqlClient
-           .mutation(doc, { id: this.walletId })
-           .toPromise();
-
-         if (result.error) {
-           this._statusError.set(toAppError(result.error).message);
-         } else {
-           await this.reloadWallet();
-         }
-       } catch (e) {
-         this._statusError.set(toAppError(e).message);
-       } finally {
-         this._statusBusy.set(false);
-       }
-     }
 
   formatAmount(amount: string, currency: string): string {
     const value = Number(amount);
@@ -296,10 +243,6 @@ export class WalletDetailPageComponent implements OnInit {
       : 'wallet-detail__delta--credit';
   }
 
-  goBack(): void {
-    void this.router.navigate(['/wallets']);
-  }
-
   statusClass(status: string): string {
     switch (status) {
       case 'ACTIVE':
@@ -311,5 +254,9 @@ export class WalletDetailPageComponent implements OnInit {
       default:
         return '';
     }
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/wallets']);
   }
 }

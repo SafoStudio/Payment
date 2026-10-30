@@ -1,0 +1,62 @@
+query PaymentDetail($id: ID!) {
+  payment(id: $id) {
+    id
+    walletId
+    targetWalletId
+    amount
+    currency
+    status
+    type
+    idempotencyKey
+    description
+    transactionId
+    createdAt
+    updatedAt
+  }
+}
+
+query PaymentRefunds($paymentId: ID!) {
+  refundsByPayment(paymentId: $paymentId) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    createdAt
+    updatedAt
+  }
+}
+
+mutation ProcessPayment($id: ID!) {
+  processPayment(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation CancelPayment($id: ID!) {
+  cancelPayment(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation CreateRefund($input: CreateRefundInput!) {
+  createRefund(input: $input) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    createdAt
+    updatedAt
+  }
+}

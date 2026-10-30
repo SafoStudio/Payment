@@ -15,6 +15,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
+    flex-wrap: wrap;
   }
 
   &__title {
@@ -119,8 +120,6 @@
   &__link {
     color: var(--color-text);
     text-decoration: none;
-    font-family: var(--font-family);
-    font-weight: 600;
 
     &::after {
       content: '';
