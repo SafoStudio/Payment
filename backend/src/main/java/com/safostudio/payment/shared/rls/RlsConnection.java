@@ -1,5 +1,10 @@
 package com.safostudio.payment.shared.rls;
 
+import com.safostudio.payment.shared.security.AppUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -16,47 +21,77 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /**
- * Connection wrapper that lazily sets the RLS context (app.current_user_id, app.role)
- * via set_config(..., true) before the first statement on this connection.
+ * Connection wrapper that sets the RLS context (app.current_user_id, app.role)
+ * via set_config(..., true) before the first statement of a transaction that
+ * needs it.
+ * <p>
+ * The context is read lazily from SecurityContextHolder on the first
+ * prepareStatement/createStatement, so a SecurityContext established after the
+ * connection is borrowed (e.g. during registration) is still picked up.
  * <p>
  * set_config(..., true) is transaction-scoped: it applies until COMMIT/ROLLBACK.
- * Hikari runs with auto-commit=false, so every transaction that reaches the DB
- * carries its own context. The "ensure" flag resets when the connection is closed
- * (pool returns a fresh wrapper per borrow).
+ * A per-connection cache avoids redundant set_config calls within the same
+ * transaction when the context did not change. The cache is invalidated on
+ * commit/rollback.
  * <p>
- * Fail-closed: missing userId/roles are passed as SQL NULL, so RLS policies match
- * no rows instead of failing on an invalid empty uuid.
+ * Fail-closed: missing userId/roles are passed as SQL NULL, so RLS policies
+ * match no rows instead of failing on an invalid empty uuid.
  */
 final class RlsConnection implements Connection {
 
   private final Connection delegate;
-  private final UUID userId;
-  private final String rolesCsv;
-  private boolean rlsContextApplied = false;
+  private UUID cachedUserId = null;
+  private String cachedRoles = "";
+  private boolean contextResolved = false;
 
-  RlsConnection(Connection delegate, UUID userId, String rolesCsv) {
+  RlsConnection(Connection delegate) {
     this.delegate = delegate;
-    this.userId = userId;
-    this.rolesCsv = rolesCsv;
   }
 
   private void ensureRlsContext() throws SQLException {
-    if (rlsContextApplied) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    UUID userId = null;
+    String rolesCsv = "";
+    if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof AppUserDetails appUser) {
+      userId = appUser.getUserId();
+      rolesCsv = appUser.getAuthorities().stream()
+              .map(GrantedAuthority::getAuthority).filter(Objects::nonNull)
+              .filter(a -> a.startsWith("ROLE_"))
+              .map(a -> a.substring("ROLE_".length()))
+              .collect(Collectors.joining(","));
+    }
+
+    if (contextResolved
+            && Objects.equals(userId, cachedUserId)
+            && Objects.equals(rolesCsv, cachedRoles)) {
       return;
     }
+
     try (PreparedStatement ps = delegate.prepareStatement(
             "SELECT set_config('app.current_user_id', ?, true), "
                     + "       set_config('app.role', ?, true)")) {
       ps.setString(1, userId != null ? userId.toString() : null);
-      ps.setString(2, rolesCsv != null && !rolesCsv.isEmpty() ? rolesCsv : null);
+      ps.setString(2, !rolesCsv.isEmpty() ? rolesCsv : null);
       ps.execute();
     }
-    rlsContextApplied = true;
+
+    cachedUserId = userId;
+    cachedRoles = rolesCsv;
+    contextResolved = true;
+  }
+
+  private void resetContextCache() {
+    cachedUserId = null;
+    cachedRoles = "";
+    contextResolved = false;
   }
 
   @Override
@@ -143,9 +178,34 @@ final class RlsConnection implements Connection {
     return delegate.setSavepoint(name);
   }
 
+  @Override
+  public void commit() throws SQLException {
+    try {
+      delegate.commit();
+    } finally {
+      resetContextCache();
+    }
+  }
+
+  @Override
+  public void rollback() throws SQLException {
+    try {
+      delegate.rollback();
+    } finally {
+      resetContextCache();
+    }
+  }
+
+  @Override
+  public void rollback(Savepoint savepoint) throws SQLException {
+    try {
+      delegate.rollback(savepoint);
+    } finally {
+      resetContextCache();
+    }
+  }
+
   @Override public String nativeSQL(String sql) throws SQLException { return delegate.nativeSQL(sql); }
-  @Override public void commit() throws SQLException { delegate.commit(); }
-  @Override public void rollback() throws SQLException { delegate.rollback(); }
   @Override public void close() throws SQLException { delegate.close(); }
   @Override public boolean isClosed() throws SQLException { return delegate.isClosed(); }
   @Override public boolean isValid(int timeout) throws SQLException { return delegate.isValid(timeout); }
@@ -160,7 +220,6 @@ final class RlsConnection implements Connection {
   @Override public int getTransactionIsolation() throws SQLException { return delegate.getTransactionIsolation(); }
   @Override public SQLWarning getWarnings() throws SQLException { return delegate.getWarnings(); }
   @Override public void clearWarnings() throws SQLException { delegate.clearWarnings(); }
-  @Override public void rollback(Savepoint savepoint) throws SQLException { delegate.rollback(savepoint); }
   @Override public void releaseSavepoint(Savepoint savepoint) throws SQLException { delegate.releaseSavepoint(savepoint); }
   @Override public Map<String, Class<?>> getTypeMap() throws SQLException { return delegate.getTypeMap(); }
   @Override public void setTypeMap(Map<String, Class<?>> map) throws SQLException { delegate.setTypeMap(map); }

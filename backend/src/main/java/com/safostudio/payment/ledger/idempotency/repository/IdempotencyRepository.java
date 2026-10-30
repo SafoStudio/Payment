@@ -22,8 +22,8 @@ public interface IdempotencyRepository extends CrudRepository<IdempotencyKey, UU
 
   @Modifying
   @Query("""
-            INSERT INTO idempotency_keys (id, operation, idempotency_key, status, request_fingerprint, expires_at, created_at)
-            VALUES (gen_random_uuid(), :operation, :idempotencyKey, 'PROCESSING', :fingerprint, :expiresAt, NOW())
+            INSERT INTO idempotency_keys (id, operation, idempotency_key, status, request_fingerprint, response, expires_at, created_at)
+            VALUES (gen_random_uuid(), :operation, :idempotencyKey, 'PROCESSING', :fingerprint, '{}'::jsonb, :expiresAt, NOW())
             ON CONFLICT (operation, idempotency_key) DO NOTHING
             """)
   int tryInsert(

@@ -9,10 +9,12 @@ import com.safostudio.payment.user.domain.UserStatus;
 import com.safostudio.payment.user.repository.RoleRepository;
 import com.safostudio.payment.user.repository.UserRepository;
 import com.safostudio.payment.user.repository.UserRoleRepository;
+import com.safostudio.payment.wallet.domain.Wallet;
+import com.safostudio.payment.wallet.domain.WalletStatus;
+import com.safostudio.payment.wallet.repository.WalletRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,11 +31,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -43,10 +45,14 @@ public class RegistrationController {
   private static final String ERROR = "error";
   private static final String EMAIL_ALREADY_REGISTERED = "Email already registered";
   private static final String MERCHANT_ROLE_CODE = "MERCHANT";
+  private static final String DEFAULT_CURRENCY = "USD";
+  private static final String ROLE_PREFIX = "ROLE_";
+  private static final String AUTHORITY_TYPE_ROLE = "ROLE";
 
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final UserRoleRepository userRoleRepository;
+  private final WalletRepository walletRepository;
   private final PasswordEncoder passwordEncoder;
   private final SecurityContextRepository securityContextRepository;
 
@@ -80,8 +86,14 @@ public class RegistrationController {
     User saved = userRepository.save(user);
     userRoleRepository.assignRole(saved.getId(), merchantRole.getId());
 
-    List<GrantedAuthority> authorities =
-            List.of(new SimpleGrantedAuthority("ROLE_" + merchantRole.getCode()));
+    List<GrantedAuthority> authorities = roleRepository.findAuthoritiesByUserId(saved.getId())
+            .stream()
+            .map(row -> new SimpleGrantedAuthority(
+                    AUTHORITY_TYPE_ROLE.equals(row.authorityType())
+                            ? ROLE_PREFIX + row.code()
+                            : row.code()))
+            .map(GrantedAuthority.class::cast)
+            .toList();
 
     AppUserDetails principal = new AppUserDetails(
             saved.getId(),
@@ -99,7 +111,15 @@ public class RegistrationController {
     securityContextHolderStrategy.setContext(context);
     securityContextRepository.saveContext(context, httpRequest, httpResponse);
 
-    log.info("User registered: id={}, email={}, role={}", saved.getId(), saved.getEmail(), merchantRole.getCode());
+    Wallet wallet = Wallet.builder()
+            .userId(saved.getId())
+            .balance(BigDecimal.ZERO)
+            .currency(DEFAULT_CURRENCY)
+            .status(WalletStatus.ACTIVE)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+    walletRepository.save(wallet);
 
     return ResponseEntity.status(HttpStatus.CREATED)
             .body(Map.of(
