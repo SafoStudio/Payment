@@ -1,0 +1,29 @@
+query RefundDetail($id: ID!) {
+  refund(id: $id) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    createdAt
+    updatedAt
+  }
+}
+
+mutation ProcessRefund($id: ID!) {
+  processRefund(id: $id) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    createdAt
+    updatedAt
+  }
+}

@@ -14,6 +14,7 @@ import {
   type RefundsQueryVariables,
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
+import { refundStatusClass } from '@shared/utils/status';
 
 type RefundRow = NonNullable<RefundsQuery['refunds']['items']>[number];
 
@@ -150,18 +151,7 @@ export class RefundsPageComponent implements OnInit {
   }
 
   statusClass(status: RefundRow['status']): string {
-    switch (status) {
-      case 'COMPLETED':
-        return 'refunds__status--completed';
-      case 'FAILED':
-      case 'REJECTED':
-        return 'refunds__status--failed';
-      case 'PENDING':
-      case 'PROCESSING':
-        return 'refunds__status--pending';
-      default:
-        return '';
-    }
+    return refundStatusClass(status);
   }
 
   private buildVariables(after: string | null): RefundsQueryVariables {

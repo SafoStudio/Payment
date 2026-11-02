@@ -10,9 +10,99 @@
     <h1 class="refund-detail__title">Refund</h1>
   </header>
 
-  <div class="refund-detail__placeholder">
-    <p class="refund-detail__label">Refund ID</p>
-    <p class="refund-detail__id">{{ refundId }}</p>
-    <p class="refund-detail__hint">Refund details will appear here.</p>
+  @if (error(); as err) {
+  <div class="refund-detail__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="refund-detail__retry" (click)="load()">
+      Try again
+    </button>
   </div>
+  } @else if (loading()) {
+  <div class="refund-detail__loading">Loading refund…</div>
+  } @else if (refund(); as r) {
+  <div class="refund-detail__summary">
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Amount</span>
+      <span class="refund-detail__amount">
+          {{ formatAmount(r.amount, r.currency) }}
+        </span>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Status</span>
+      <span class="refund-detail__status" [class]="statusClass(r.status)">
+          {{ r.status }}
+        </span>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Currency</span>
+      <span class="refund-detail__value">{{ r.currency }}</span>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Created</span>
+      <span class="refund-detail__value">{{ formatDate(r.createdAt) }}</span>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Updated</span>
+      <span class="refund-detail__value">{{ formatDate(r.updatedAt) }}</span>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Payment</span>
+      <a class="refund-detail__link" [routerLink]="['/payments', r.paymentId]">
+        {{ r.paymentId }}
+      </a>
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Original transaction</span>
+      @if (r.originalTransactionId) {
+      <a
+        class="refund-detail__link"
+        [routerLink]="['/transactions', r.originalTransactionId]"
+      >
+        {{ r.originalTransactionId }}
+      </a>
+      } @else {
+      <span class="refund-detail__value refund-detail__muted">—</span>
+      }
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Refund transaction</span>
+      @if (r.refundTransactionId) {
+      <a
+        class="refund-detail__link"
+        [routerLink]="['/transactions', r.refundTransactionId]"
+      >
+        {{ r.refundTransactionId }}
+      </a>
+      } @else {
+      <span class="refund-detail__value refund-detail__muted">—</span>
+      }
+    </div>
+    <div class="refund-detail__summary-cell refund-detail__summary-cell--wide">
+      <span class="refund-detail__label">Reason</span>
+      <span class="refund-detail__value refund-detail__reason">
+          @if (r.reason) {
+          {{ r.reason }}
+          } @else {
+          <span class="refund-detail__muted">—</span>
+          }
+        </span>
+    </div>
+  </div>
+
+  @if (canProcessRefund()) {
+  <div class="refund-detail__actions">
+    <button
+      type="button"
+      class="refund-detail__action"
+      (click)="processRefund()"
+      [disabled]="actionBusy()"
+    >
+      {{ actionBusy() ? 'Processing…' : 'Process refund' }}
+    </button>
+    @if (actionError(); as ae) {
+    <p class="refund-detail__action-error">{{ ae }}</p>
+    }
+  </div>
+  }
+  }
 </section>
