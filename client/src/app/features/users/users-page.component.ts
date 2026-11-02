@@ -14,6 +14,7 @@ import {
   type UsersQueryVariables,
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
+import { userStatusClass } from '@shared/utils/status';
 
 type UserRow = NonNullable<UsersQuery['users']['items']>[number];
 
@@ -158,16 +159,7 @@ export class UsersPageComponent implements OnInit {
   }
 
   statusClass(status: UserRow['status']): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'users__status--active';
-      case 'BLOCKED':
-        return 'users__status--blocked';
-      case 'DELETED':
-        return 'users__status--deleted';
-      default:
-        return '';
-    }
+    return userStatusClass(status);
   }
 
   private buildVariables(after: string | null): UsersQueryVariables {

@@ -119,32 +119,6 @@
     font-size: var(--font-size-xs);
     font-weight: 600;
     letter-spacing: 0.04em;
-
-    &--succeeded {
-      background: color-mix(in srgb, var(--color-primary) 15%, transparent);
-      color: var(--color-primary);
-    }
-
-    &--pending {
-      background: rgba(212, 163, 64, 0.18);
-      color: #a07a1f;
-    }
-
-    &--processing {
-      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
-      color: var(--color-primary);
-    }
-
-    &--failed {
-      background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-      color: var(--color-danger);
-    }
-
-    &--refunded,
-    &--cancelled {
-      background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
-      color: var(--color-text-muted);
-    }
   }
 
   &__actions {

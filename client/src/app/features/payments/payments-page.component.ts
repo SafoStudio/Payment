@@ -14,6 +14,7 @@ import {
   type PaymentsQueryVariables,
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
+import { paymentStatusClass } from '@shared/utils/status';
 
 type PaymentRow = NonNullable<PaymentsQuery['payments']['items']>[number];
 
@@ -151,20 +152,7 @@ export class PaymentsPageComponent implements OnInit {
   }
 
   statusClass(status: PaymentRow['status']): string {
-    switch (status) {
-      case 'SUCCEEDED':
-        return 'payments__status--succeeded';
-      case 'FAILED':
-      case 'CANCELLED':
-        return 'payments__status--failed';
-      case 'PENDING':
-      case 'PROCESSING':
-        return 'payments__status--pending';
-      case 'REFUNDED':
-        return 'payments__status--refunded';
-      default:
-        return '';
-    }
+    return paymentStatusClass(status);
   }
 
   private buildVariables(after: string | null): PaymentsQueryVariables {

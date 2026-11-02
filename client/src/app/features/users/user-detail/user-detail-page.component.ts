@@ -20,6 +20,7 @@ import {
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
+import { userStatusClass } from '@shared/utils/status';
 
 type UserDetail = UserQuery['user'];
 
@@ -245,16 +246,7 @@ export class UserDetailPageComponent implements OnInit {
   }
 
   statusClass(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'user-detail__status--active';
-      case 'BLOCKED':
-        return 'user-detail__status--blocked';
-      case 'DELETED':
-        return 'user-detail__status--deleted';
-      default:
-        return '';
-    }
+    return userStatusClass(status);
   }
 
   goBack(): void {

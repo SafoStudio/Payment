@@ -21,6 +21,7 @@ import {
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { type DocumentNode } from 'graphql';
 import { AuthService } from '@core/auth/auth.service';
+import { walletStatusClass } from '@shared/utils/status';
 
 type Wallet = WalletQuery['wallet'];
 type HistoryRow = NonNullable<BalanceHistoryQuery['balanceHistory']['items']>[number];
@@ -326,16 +327,7 @@ export class WalletDetailPageComponent implements OnInit {
   }
 
   statusClass(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'wallet-detail__status--active';
-      case 'BLOCKED':
-        return 'wallet-detail__status--blocked';
-      case 'CLOSED':
-        return 'wallet-detail__status--closed';
-      default:
-        return '';
-    }
+    return walletStatusClass(status);
   }
 
   goBack(): void {

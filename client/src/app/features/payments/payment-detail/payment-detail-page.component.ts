@@ -20,6 +20,7 @@ import {
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
+import { paymentStatusClass, refundStatusClass as refundStatusCssClass } from '@shared/utils/status';
 
 type Payment = PaymentDetailQuery['payment'];
 type RefundRow = NonNullable<PaymentRefundsQuery['refundsByPayment']>[number];
@@ -290,37 +291,11 @@ export class PaymentDetailPageComponent implements OnInit {
   }
 
   statusClass(status: string): string {
-    switch (status) {
-      case 'SUCCEEDED':
-        return 'payment-detail__status--succeeded';
-      case 'PENDING':
-        return 'payment-detail__status--pending';
-      case 'PROCESSING':
-        return 'payment-detail__status--processing';
-      case 'FAILED':
-        return 'payment-detail__status--failed';
-      case 'REFUNDED':
-        return 'payment-detail__status--refunded';
-      case 'CANCELLED':
-        return 'payment-detail__status--cancelled';
-      default:
-        return '';
-    }
+    return paymentStatusClass(status);
   }
 
   refundStatusClass(status: string): string {
-    switch (status) {
-      case 'COMPLETED':
-        return 'payment-detail__status--succeeded';
-      case 'PENDING':
-      case 'PROCESSING':
-        return 'payment-detail__status--pending';
-      case 'FAILED':
-      case 'REJECTED':
-        return 'payment-detail__status--failed';
-      default:
-        return '';
-    }
+    return refundStatusCssClass(status);
   }
 
   typeLabel(type: string): string {

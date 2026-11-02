@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
 import { gqlClient } from '@core/graphql/client';
 import { WalletsDocument, type WalletsQuery } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
+import { walletStatusClass } from '@shared/utils/status';
 
 type WalletRow = NonNullable<WalletsQuery['wallets']>[number];
 
@@ -78,15 +79,6 @@ export class WalletsPageComponent implements OnInit {
   }
 
   statusClass(status: WalletRow['status']): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'wallets__status--active';
-      case 'BLOCKED':
-        return 'wallets__status--blocked';
-      case 'CLOSED':
-        return 'wallets__status--closed';
-      default:
-        return '';
-    }
+    return walletStatusClass(status);
   }
 }
