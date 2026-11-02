@@ -20,6 +20,7 @@ public class TransactionResponse {
   String status;
   String description;
   UUID referenceId;
+  String referenceType;
   Instant createdAt;
 
   public static TransactionResponse fromDomain(Transaction transaction) {
@@ -33,6 +34,9 @@ public class TransactionResponse {
             .status(transaction.getStatus().name())
             .description(transaction.getDescription())
             .referenceId(transaction.getReferenceId())
+            .referenceType(transaction.getReferenceType() != null
+                    ? transaction.getReferenceType().name()
+                    : null)
             .createdAt(transaction.getCreatedAt())
             .build();
   }

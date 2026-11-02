@@ -5,6 +5,7 @@ import com.safostudio.payment.payment.repository.PaymentRepository;
 import com.safostudio.payment.refund.domain.Refund;
 import com.safostudio.payment.refund.repository.RefundRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.ledger.transaction.domain.TransactionReference;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,10 @@ public class RefundProcessor {
               .description("Refund for payment: " + payment.getId())
               .build();
 
-      var transaction = transferService.transfer(transferRequest);
+      var transaction = transferService.transfer(
+              transferRequest,
+              TransactionReference.refund(refund.getId())
+      );
 
       refund.complete(transaction.getId());
 

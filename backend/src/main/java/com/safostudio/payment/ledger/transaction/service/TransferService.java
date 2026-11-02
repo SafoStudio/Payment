@@ -1,4 +1,3 @@
-
 package com.safostudio.payment.ledger.transaction.service;
 
 import com.safostudio.payment.fee.domain.Fee;
@@ -11,6 +10,7 @@ import com.safostudio.payment.ledger.balance.domain.BalanceHistory;
 import com.safostudio.payment.ledger.balance.repository.BalanceHistoryRepository;
 import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
 import com.safostudio.payment.ledger.transaction.domain.Transaction;
+import com.safostudio.payment.ledger.transaction.domain.TransactionReference;
 import com.safostudio.payment.ledger.transaction.dto.AdjustBalanceRequest;
 import com.safostudio.payment.ledger.transaction.dto.TransactionResponse;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
@@ -52,7 +52,7 @@ public class TransferService {
   private final AuditLogRepository auditLogRepository;
 
   @Transactional
-  public TransactionResponse transfer(TransferRequest request) {
+  public TransactionResponse transfer(TransferRequest request, TransactionReference reference) {
 
     validateTransferRequest(request);
 
@@ -98,7 +98,8 @@ public class TransferService {
             toWallet.getId(),
             request.getAmount(),
             request.getCurrency(),
-            request.getDescription()
+            request.getDescription(),
+            reference
     );
 
     Transaction savedTransaction = transactionRepository.save(transaction);
@@ -247,7 +248,8 @@ public class TransferService {
             creditWalletId,
             absAmount,
             wallet.getCurrency(),
-            request.getReason()
+            request.getReason(),
+            TransactionReference.adjustment()
     );
 
     Transaction savedTransaction =
@@ -469,7 +471,8 @@ public class TransferService {
             fee.getToWalletId(),
             fee.getAmount(),
             fee.getCurrency(),
-            "Fee for transaction: " + parentTransaction.getId()
+            "Fee for transaction: " + parentTransaction.getId(),
+            TransactionReference.none()
     );
 
     feeTransaction.complete();

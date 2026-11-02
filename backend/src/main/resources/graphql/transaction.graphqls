@@ -8,6 +8,7 @@ type Transaction {
     status: TransactionStatus!
     description: String
     referenceId: ID
+    referenceType: ReferenceType
     createdAt: String!
 }
 
@@ -24,6 +25,13 @@ enum TransactionStatus {
     COMPLETED
     FAILED
     CANCELLED
+}
+
+enum ReferenceType {
+    PAYMENT
+    REFUND
+    ADJUSTMENT
+    EXTERNAL
 }
 
 input TransactionFilterInput {

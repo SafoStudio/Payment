@@ -38,11 +38,14 @@ public class Transaction {
 
   private UUID referenceId;
 
+  private ReferenceType referenceType;
+
   private Instant createdAt;
 
   public static Transaction createTransfer(UUID fromWallet, UUID toWallet,
                                            BigDecimal amount, String currency,
-                                           String description) {
+                                           String description,
+                                           TransactionReference reference) {
     validateAmount(amount);
 
     if (fromWallet.equals(toWallet)) {
@@ -57,13 +60,16 @@ public class Transaction {
             .type(TransactionType.TRANSFER)
             .status(TransactionStatus.PENDING)
             .description(description)
+            .referenceType(reference != null ? reference.type() : null)
+            .referenceId(reference != null ? reference.id() : null)
             .createdAt(Instant.now())
             .build();
   }
 
   public static Transaction createAdjustment(UUID debitWalletId, UUID creditWalletId,
                                              BigDecimal amount, String currency,
-                                             String description) {
+                                             String description,
+                                             TransactionReference reference) {
     validateAmount(amount);
 
     if (debitWalletId.equals(creditWalletId)) {
@@ -78,6 +84,8 @@ public class Transaction {
             .type(TransactionType.ADJUSTMENT)
             .status(TransactionStatus.PENDING)
             .description(description)
+            .referenceType(reference != null ? reference.type() : null)
+            .referenceId(reference != null ? reference.id() : null)
             .createdAt(Instant.now())
             .build();
   }

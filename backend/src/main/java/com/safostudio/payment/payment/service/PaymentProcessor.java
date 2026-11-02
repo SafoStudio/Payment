@@ -3,6 +3,7 @@ package com.safostudio.payment.payment.service;
 import com.safostudio.payment.payment.domain.Payment;
 import com.safostudio.payment.payment.repository.PaymentRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
+import com.safostudio.payment.ledger.transaction.domain.TransactionReference;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +74,10 @@ public class PaymentProcessor {
             .description(payment.getDescription())
             .build();
 
-    var transaction = transferService.transfer(request);
+    var transaction = transferService.transfer(
+            request,
+            TransactionReference.payment(payment.getId())
+    );
     payment.succeed(transaction.getId());
 
     return paymentRepository.save(payment);
