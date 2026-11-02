@@ -24,8 +24,6 @@ public class Refund {
 
   private UUID paymentId;
 
-  private UUID transactionId;
-
   private BigDecimal amount;
 
   private String currency;

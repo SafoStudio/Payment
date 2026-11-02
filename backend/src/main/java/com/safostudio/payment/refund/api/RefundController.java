@@ -38,7 +38,7 @@ public class RefundController {
     return refundService.createRefund(request);
   }
 
-  @PreAuthorize("hasAuthority('refund:create')")
+  @PreAuthorize("hasAuthority('refund:process')")
   @MutationMapping
   public RefundResponse processRefund(@Argument UUID id) {
     return refundService.processRefund(id);
