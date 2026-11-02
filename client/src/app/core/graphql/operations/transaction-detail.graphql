@@ -1,0 +1,30 @@
+query TransactionDetail($id: ID!) {
+  transaction(id: $id) {
+    id
+    debitWalletId
+    creditWalletId
+    amount
+    currency
+    type
+    status
+    description
+    referenceId
+    referenceType
+    createdAt
+  }
+}
+
+query TransactionFees($transactionId: ID!) {
+  feesByTransaction(transactionId: $transactionId) {
+    id
+    transactionId
+    fromWalletId
+    toWalletId
+    amount
+    currency
+    type
+    percentage
+    calculationRule
+    createdAt
+  }
+}

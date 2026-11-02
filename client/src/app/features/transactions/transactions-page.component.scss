@@ -206,21 +206,6 @@
     font-size: var(--font-size-xs);
     font-weight: 600;
     letter-spacing: 0.04em;
-
-    &--completed {
-      background: color-mix(in srgb, var(--color-primary) 15%, transparent);
-      color: var(--color-primary);
-    }
-
-    &--pending {
-      background: color-mix(in srgb, #d4a340 15%, transparent);
-      color: #a07a1f;
-    }
-
-    &--failed {
-      background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-      color: var(--color-danger);
-    }
   }
 
   &__more {

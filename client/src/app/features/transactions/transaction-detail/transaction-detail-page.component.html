@@ -10,9 +10,145 @@
     <h1 class="transaction-detail__title">Transaction</h1>
   </header>
 
-  <div class="transaction-detail__placeholder">
-    <p class="transaction-detail__label">Transaction ID</p>
-    <p class="transaction-detail__id">{{ transactionId }}</p>
-    <p class="transaction-detail__hint">Transaction details will appear here.</p>
+  @if (error(); as err) {
+  <div class="transaction-detail__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="transaction-detail__retry" (click)="load()">
+      Try again
+    </button>
   </div>
+  } @else if (loading()) {
+  <div class="transaction-detail__loading">Loading transaction…</div>
+  } @else if (transaction(); as tx) {
+  <div class="transaction-detail__summary">
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Amount</span>
+      <span class="transaction-detail__amount">
+          {{ formatAmount(tx.amount, tx.currency) }}
+        </span>
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Status</span>
+      <span class="transaction-detail__status" [class]="statusClass(tx.status)">
+          {{ tx.status }}
+        </span>
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Type</span>
+      <span class="transaction-detail__value">{{ typeLabel(tx.type) }}</span>
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Currency</span>
+      <span class="transaction-detail__value">{{ tx.currency }}</span>
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Created</span>
+      <span class="transaction-detail__value">{{ formatDate(tx.createdAt) }}</span>
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Debit wallet</span>
+      @if (canReadAllWallets()) {
+      <a class="transaction-detail__link" [routerLink]="['/wallets', tx.debitWalletId]">
+        {{ tx.debitWalletId }}
+      </a>
+      } @else {
+      <span class="transaction-detail__mono">{{ tx.debitWalletId }}</span>
+      }
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">Credit wallet</span>
+      @if (canReadAllWallets()) {
+      <a class="transaction-detail__link" [routerLink]="['/wallets', tx.creditWalletId]">
+        {{ tx.creditWalletId }}
+      </a>
+      } @else {
+      <span class="transaction-detail__mono">{{ tx.creditWalletId }}</span>
+      }
+    </div>
+    <div class="transaction-detail__summary-cell">
+      <span class="transaction-detail__label">
+        Reference{{ tx.referenceType ? ' (' + referenceTypeLabel(tx.referenceType) + ')' : '' }}
+      </span>
+      @if (referenceLink(tx.referenceType, tx.referenceId); as refLink) {
+      <a class="transaction-detail__link" [routerLink]="refLink">
+        {{ tx.referenceId }}
+      </a>
+      } @else if (tx.referenceId) {
+      <span class="transaction-detail__mono">{{ tx.referenceId }}</span>
+      } @else {
+      <span class="transaction-detail__value transaction-detail__muted">—</span>
+      }
+    </div>
+    <div class="transaction-detail__summary-cell transaction-detail__summary-cell--wide">
+      <span class="transaction-detail__label">Description</span>
+      <span class="transaction-detail__value">
+          @if (tx.description) {
+          {{ tx.description }}
+          } @else {
+          <span class="transaction-detail__muted">—</span>
+          }
+        </span>
+    </div>
+  </div>
+
+  @if (fees().length > 0) {
+  <section class="transaction-detail__fees">
+    <header class="transaction-detail__fees-header">
+      <h2 class="transaction-detail__fees-title">Fees</h2>
+    </header>
+    <div class="transaction-detail__table-wrap">
+      <table class="transaction-detail__table">
+        <thead>
+        <tr>
+          <th scope="col">Created</th>
+          <th scope="col">Type</th>
+          <th scope="col" class="transaction-detail__cell--right">Amount</th>
+          <th scope="col">From wallet</th>
+          <th scope="col">To wallet</th>
+          <th scope="col">Rule</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (fee of fees(); track fee.id) {
+        <tr>
+          <td>{{ formatDate(fee.createdAt) }}</td>
+          <td>{{ feeTypeLabel(fee.type) }}</td>
+          <td class="transaction-detail__cell--right">
+            {{ formatAmount(fee.amount, fee.currency) }}
+          </td>
+          <td>
+            @if (canReadAllWallets()) {
+            <a class="transaction-detail__link" [routerLink]="['/wallets', fee.fromWalletId]">
+              {{ fee.fromWalletId }}
+            </a>
+            } @else {
+            <span class="transaction-detail__mono">{{ fee.fromWalletId }}</span>
+            }
+          </td>
+          <td>
+            @if (canReadAllWallets()) {
+            <a class="transaction-detail__link" [routerLink]="['/wallets', fee.toWalletId]">
+              {{ fee.toWalletId }}
+            </a>
+            } @else {
+            <span class="transaction-detail__mono">{{ fee.toWalletId }}</span>
+            }
+          </td>
+          <td class="transaction-detail__muted">
+            @if (fee.calculationRule) {
+            {{ fee.calculationRule }}
+            } @else if (fee.percentage) {
+            {{ fee.percentage }}%
+            } @else {
+            —
+            }
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  }
+  }
 </section>

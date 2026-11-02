@@ -10,6 +10,7 @@ query Transactions($filter: TransactionFilterInput, $limit: Int, $after: String)
       status
       description
       referenceId
+      referenceType
       createdAt
     }
     nextCursor

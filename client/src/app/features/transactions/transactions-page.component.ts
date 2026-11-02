@@ -15,6 +15,7 @@ import {
   type TransactionsQueryVariables,
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
+import { transactionStatusClass } from '@shared/utils/status';
 
 type TransactionRow = NonNullable<TransactionsQuery['transactions']['items']>[number];
 
@@ -170,17 +171,7 @@ export class TransactionsPageComponent implements OnInit {
   }
 
   statusClass(status: TransactionRow['status']): string {
-    switch (status) {
-      case 'COMPLETED':
-        return 'transactions__status--completed';
-      case 'FAILED':
-      case 'CANCELLED':
-        return 'transactions__status--failed';
-      case 'PENDING':
-        return 'transactions__status--pending';
-      default:
-        return '';
-    }
+    return transactionStatusClass(status);
   }
 
   private buildVariables(after: string | null): TransactionsQueryVariables {
