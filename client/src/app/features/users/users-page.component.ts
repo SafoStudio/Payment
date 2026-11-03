@@ -15,6 +15,7 @@ import {
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { userStatusClass } from '@shared/utils/status';
+import { formatDate } from '@shared/utils/date';
 
 type UserRow = NonNullable<UsersQuery['users']['items']>[number];
 
@@ -76,6 +77,8 @@ export class UsersPageComponent implements OnInit {
       !this._error() &&
       this._items().length === 0,
   );
+
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.reload();
@@ -146,16 +149,6 @@ export class UsersPageComponent implements OnInit {
   onRoleChange(value: string): void {
     this._roleCode.set(value);
     void this.reload();
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: UserRow['status']): string {

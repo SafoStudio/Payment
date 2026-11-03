@@ -22,6 +22,8 @@ import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { type DocumentNode } from 'graphql';
 import { AuthService } from '@core/auth/auth.service';
 import { walletStatusClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type Wallet = WalletQuery['wallet'];
 type HistoryRow = NonNullable<BalanceHistoryQuery['balanceHistory']['items']>[number];
@@ -93,6 +95,9 @@ export class WalletDetailPageComponent implements OnInit {
       !this._historyError() &&
       this._history().length === 0,
   );
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.reloadWallet();
@@ -270,15 +275,6 @@ export class WalletDetailPageComponent implements OnInit {
     }
   }
 
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
   formatDelta(amount: string, currency: string): string {
     const value = Number(amount);
     if (!Number.isFinite(value)) return amount;
@@ -287,16 +283,6 @@ export class WalletDetailPageComponent implements OnInit {
       currency,
     }).format(Math.abs(value));
     return value >= 0 ? `+${formatted}` : `-${formatted}`;
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   operationLabel(type: string): string {

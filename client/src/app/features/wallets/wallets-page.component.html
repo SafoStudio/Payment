@@ -48,7 +48,7 @@
           </a>
         </td>
         <td class="wallets__cell--right">
-          {{ formatBalance(wallet.balance, wallet.currency) }}
+          {{ formatAmount(wallet.balance, wallet.currency) }}
         </td>
         <td>
                 <span class="wallets__status" [class]="statusClass(wallet.status)">

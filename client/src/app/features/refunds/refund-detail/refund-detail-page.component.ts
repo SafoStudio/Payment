@@ -16,6 +16,8 @@ import {
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
 import { refundStatusClass as refundStatusCssClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type Refund = RefundDetailQuery['refund'];
 
@@ -51,6 +53,9 @@ export class RefundDetailPageComponent implements OnInit {
     const status = this._refund()?.status;
     return this.auth.hasPermission('refund:process') && status === 'PENDING';
   });
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.load();
@@ -101,25 +106,6 @@ export class RefundDetailPageComponent implements OnInit {
     } finally {
       this._actionBusy.set(false);
     }
-  }
-
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: string): string {

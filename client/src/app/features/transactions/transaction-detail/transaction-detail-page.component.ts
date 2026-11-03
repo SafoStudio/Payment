@@ -16,6 +16,9 @@ import {
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
+import { transactionStatusClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type Transaction = TransactionDetailQuery['transaction'];
 type FeeRow = NonNullable<TransactionFeesQuery['feesByTransaction']>[number];
@@ -48,6 +51,9 @@ export class TransactionDetailPageComponent implements OnInit {
   readonly canReadAllWallets = computed(() =>
     this.auth.hasAnyPermission(['wallet:read:all']),
   );
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.load();
@@ -116,38 +122,8 @@ export class TransactionDetailPageComponent implements OnInit {
     }
   }
 
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
   statusClass(status: string): string {
-    switch (status) {
-      case 'COMPLETED':
-        return 'transaction-detail__status--completed';
-      case 'PENDING':
-        return 'transaction-detail__status--pending';
-      case 'FAILED':
-        return 'transaction-detail__status--failed';
-      case 'CANCELLED':
-        return 'transaction-detail__status--cancelled';
-      default:
-        return '';
-    }
+    return transactionStatusClass(status);
   }
 
   typeLabel(type: string): string {

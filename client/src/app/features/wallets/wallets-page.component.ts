@@ -10,6 +10,8 @@ import { gqlClient } from '@core/graphql/client';
 import { WalletsDocument, type WalletsQuery } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { walletStatusClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type WalletRow = NonNullable<WalletsQuery['wallets']>[number];
 
@@ -34,6 +36,9 @@ export class WalletsPageComponent implements OnInit {
     () => !this._loading() && !this._error() && this._wallets().length === 0,
   );
 
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
+
   ngOnInit(): void {
     void this.load();
   }
@@ -57,25 +62,6 @@ export class WalletsPageComponent implements OnInit {
     } finally {
       this._loading.set(false);
     }
-  }
-
-  formatBalance(balance: string, currency: string): string {
-    const amount = Number(balance);
-    if (!Number.isFinite(amount)) return balance;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(amount);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: WalletRow['status']): string {

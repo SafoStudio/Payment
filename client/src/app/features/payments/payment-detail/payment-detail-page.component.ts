@@ -21,6 +21,8 @@ import {
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
 import { paymentStatusClass, refundStatusClass as refundStatusCssClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type Payment = PaymentDetailQuery['payment'];
 type RefundRow = NonNullable<PaymentRefundsQuery['refundsByPayment']>[number];
@@ -83,6 +85,9 @@ export class PaymentDetailPageComponent implements OnInit {
   readonly refundsEmpty = computed(
     () => !this._loading() && !this._error() && this._refunds().length === 0,
   );
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.load();
@@ -269,25 +274,6 @@ export class PaymentDetailPageComponent implements OnInit {
     } finally {
       this._actionBusy.set(false);
     }
-  }
-
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: string): string {

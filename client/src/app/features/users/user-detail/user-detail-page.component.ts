@@ -21,6 +21,8 @@ import {
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { AuthService } from '@core/auth/auth.service';
 import { userStatusClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type UserDetail = UserQuery['user'];
 
@@ -72,6 +74,9 @@ export class UserDetailPageComponent implements OnInit {
   readonly isActive = computed(() => this._user()?.status === 'ACTIVE');
   readonly isBlocked = computed(() => this._user()?.status === 'BLOCKED');
   readonly isDeleted = computed(() => this._user()?.status === 'DELETED');
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.reload();
@@ -224,25 +229,6 @@ export class UserDetailPageComponent implements OnInit {
     } finally {
       this._busy.set(false);
     }
-  }
-
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: string): string {

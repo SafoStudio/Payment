@@ -15,6 +15,8 @@ import {
 } from '@core/graphql/graphql';
 import { toAppError, type AppError } from '@core/graphql/error-handler';
 import { paymentStatusClass } from '@shared/utils/status';
+import { formatAmount } from '@shared/utils/money';
+import { formatDate } from '@shared/utils/date';
 
 type PaymentRow = NonNullable<PaymentsQuery['payments']['items']>[number];
 
@@ -65,6 +67,9 @@ export class PaymentsPageComponent implements OnInit {
       !this._error() &&
       this._items().length === 0,
   );
+
+  protected readonly formatAmount = formatAmount;
+  protected readonly formatDate = formatDate;
 
   ngOnInit(): void {
     void this.reload();
@@ -130,25 +135,6 @@ export class PaymentsPageComponent implements OnInit {
   onStatusChange(value: string): void {
     this._status.set(value as PaymentStatus | '');
     void this.reload();
-  }
-
-  formatAmount(amount: string, currency: string): string {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return amount;
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
-      currency,
-    }).format(value);
-  }
-
-  formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 
   statusClass(status: PaymentRow['status']): string {
