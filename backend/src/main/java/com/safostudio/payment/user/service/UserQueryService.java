@@ -1,6 +1,7 @@
 package com.safostudio.payment.user.service;
 
 import com.safostudio.payment.shared.cursor.CursorCodec;
+import com.safostudio.payment.shared.security.UserRoleCodeRow;
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.user.dto.UserPageResponse;
 import com.safostudio.payment.user.dto.UserResponse;
@@ -11,8 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,16 +60,31 @@ public class UserQueryService {
       nextCursor = CursorCodec.encode(last.getCreatedAt(), last.getId());
     }
 
+    Map<UUID, List<String>> rolesByUser = loadRoleCodes(page);
+
     List<UserResponse> items = page.stream()
             .map(u -> UserResponse.fromDomain(
                     u,
-                    roleRepository.findRoleCodesByUserId(u.getId()),
+                    rolesByUser.getOrDefault(u.getId(), List.of()),
                     List.of(),
                     null
             ))
             .toList();
 
     return new UserPageResponse(items, nextCursor, hasMore);
+  }
+
+  private Map<UUID, List<String>> loadRoleCodes(List<User> page) {
+    if (page.isEmpty()) {
+      return Map.of();
+    }
+    List<UUID> ids = page.stream().map(User::getId).toList();
+    return roleRepository.findRoleCodesByUserIds(ids).stream()
+            .collect(Collectors.groupingBy(
+                    UserRoleCodeRow::userId,
+                    LinkedHashMap::new,
+                    Collectors.mapping(UserRoleCodeRow::code, Collectors.toList())
+            ));
   }
 
   private int normalizeLimit(Integer limit) {

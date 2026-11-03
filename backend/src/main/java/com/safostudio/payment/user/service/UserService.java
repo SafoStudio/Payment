@@ -103,13 +103,6 @@ public class UserService {
   }
 
   @Transactional(readOnly = true)
-  public List<UserResponse> getAllUsers() {
-    return StreamSupport.stream(userRepository.findAll().spliterator(), false)
-            .map(this::toResponse)
-            .toList();
-  }
-
-  @Transactional(readOnly = true)
   public List<UserResponse> getActiveUsers() {
     return userRepository.findAllActive().stream()
             .map(this::toResponse)

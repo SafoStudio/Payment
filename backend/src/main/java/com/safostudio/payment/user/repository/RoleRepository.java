@@ -1,12 +1,14 @@
 package com.safostudio.payment.user.repository;
 
-import com.safostudio.payment.user.domain.Role;
 import com.safostudio.payment.shared.security.AuthorityRow;
+import com.safostudio.payment.shared.security.UserRoleCodeRow;
+import com.safostudio.payment.user.domain.Role;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,8 +24,18 @@ public interface RoleRepository extends CrudRepository<Role, UUID> {
             SELECT r.code FROM roles r
             JOIN user_roles ur ON ur.role_id = r.id
             WHERE ur.user_id = :userId
+            ORDER BY r.code
             """)
   List<String> findRoleCodesByUserId(@Param("userId") UUID userId);
+
+  @Query("""
+            SELECT ur.user_id AS user_id, r.code AS code
+            FROM user_roles ur
+            JOIN roles r ON r.id = ur.role_id
+            WHERE ur.user_id IN (:userIds)
+            ORDER BY ur.user_id, r.code
+            """)
+  List<UserRoleCodeRow> findRoleCodesByUserIds(@Param("userIds") Collection<UUID> userIds);
 
   @Query("""
             SELECT 'ROLE' AS authority_type, r.code AS code
