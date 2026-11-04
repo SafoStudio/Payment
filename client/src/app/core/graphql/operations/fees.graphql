@@ -1,0 +1,60 @@
+query FeeRules {
+  feeRules {
+    id
+    name
+    transactionType
+    feeType
+    fixedAmount
+    percentage
+    minAmount
+    maxAmount
+    currency
+    fromWalletId
+    toWalletId
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateFeeRule($input: CreateFeeRuleInput!) {
+  createFeeRule(input: $input) {
+    id
+    name
+    transactionType
+    feeType
+    fixedAmount
+    percentage
+    minAmount
+    maxAmount
+    currency
+    fromWalletId
+    toWalletId
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateFeeRule($input: UpdateFeeRuleInput!) {
+  updateFeeRule(input: $input) {
+    id
+    name
+    transactionType
+    feeType
+    fixedAmount
+    percentage
+    minAmount
+    maxAmount
+    currency
+    fromWalletId
+    toWalletId
+    isActive
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteFeeRule($id: ID!) {
+  deleteFeeRule(id: $id)
+}

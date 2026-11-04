@@ -1,0 +1,292 @@
+<section class="fees">
+  <header class="fees__header">
+    <div>
+      <h1 class="fees__title">Fees &amp; tariffs</h1>
+      <p class="fees__subtitle">Fee rules applied when processing transactions.</p>
+    </div>
+    <div class="fees__header-actions">
+      <button
+        type="button"
+        class="fees__refresh"
+        (click)="load()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+      @if (canManage()) {
+      <button
+        type="button"
+        class="fees__primary"
+        (click)="openCreate()"
+        [disabled]="formOpen()"
+      >
+        New rule
+      </button>
+      }
+    </div>
+  </header>
+
+  @if (formOpen()) {
+  <form
+    class="fees__form"
+    (submit)="$event.preventDefault(); submitForm()"
+  >
+    <p class="fees__form-title">
+      {{ form().id ? 'Edit fee rule' : 'New fee rule' }}
+    </p>
+
+    <div class="fees__grid">
+      <label class="fees__field">
+        <span class="fees__label">Name</span>
+        <input
+          type="text"
+          class="fees__input"
+          [value]="form().name"
+          (input)="onTextInput('name', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="Default transfer fee"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Transaction type</span>
+        <select
+          class="fees__input"
+          [value]="form().transactionType"
+          (change)="onTransactionTypeChange($any($event.target).value)"
+          [disabled]="formBusy()"
+        >
+          <option value="">Select…</option>
+          @for (opt of transactionTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Fee type</span>
+        <select
+          class="fees__input"
+          [value]="form().feeType"
+          (change)="onFeeTypeChange($any($event.target).value)"
+          [disabled]="formBusy()"
+        >
+          <option value="">Select…</option>
+          @for (opt of feeTypeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Fixed amount</span>
+        <input
+          type="text"
+          inputmode="decimal"
+          class="fees__input"
+          [value]="form().fixedAmount"
+          (input)="onTextInput('fixedAmount', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="0.00"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Percentage</span>
+        <input
+          type="text"
+          inputmode="decimal"
+          class="fees__input"
+          [value]="form().percentage"
+          (input)="onTextInput('percentage', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="1.00"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Min amount</span>
+        <input
+          type="text"
+          inputmode="decimal"
+          class="fees__input"
+          [value]="form().minAmount"
+          (input)="onTextInput('minAmount', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="0.10"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Max amount</span>
+        <input
+          type="text"
+          inputmode="decimal"
+          class="fees__input"
+          [value]="form().maxAmount"
+          (input)="onTextInput('maxAmount', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="10.00"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">Currency</span>
+        <input
+          type="text"
+          class="fees__input"
+          [value]="form().currency"
+          (input)="onTextInput('currency', $any($event.target).value.toUpperCase())"
+          [disabled]="formBusy()"
+          placeholder="USD"
+          maxlength="3"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">From wallet (optional)</span>
+        <input
+          type="text"
+          class="fees__input fees__input--mono"
+          [value]="form().fromWalletId"
+          (input)="onTextInput('fromWalletId', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="UUID"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field">
+        <span class="fees__label">To wallet (optional)</span>
+        <input
+          type="text"
+          class="fees__input fees__input--mono"
+          [value]="form().toWalletId"
+          (input)="onTextInput('toWalletId', $any($event.target).value)"
+          [disabled]="formBusy()"
+          placeholder="UUID"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="fees__field fees__field--checkbox">
+        <input
+          type="checkbox"
+          [checked]="form().isActive"
+          (change)="onActiveChange($any($event.target).checked)"
+          [disabled]="formBusy()"
+        />
+        <span class="fees__label">Active</span>
+      </label>
+    </div>
+
+    @if (formError(); as fe) {
+    <p class="fees__form-error" role="alert">{{ fe }}</p>
+    }
+
+    <div class="fees__form-actions">
+      <button
+        type="submit"
+        class="fees__primary"
+        [disabled]="formBusy()"
+      >
+        {{ formBusy() ? 'Saving…' : (form().id ? 'Save changes' : 'Create rule') }}
+      </button>
+      <button
+        type="button"
+        class="fees__secondary"
+        (click)="closeForm()"
+        [disabled]="formBusy()"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+  }
+
+  @if (error(); as err) {
+  <div class="fees__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="fees__retry" (click)="load()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="fees__loading">Loading fee rules…</div>
+  } @else if (isEmpty()) {
+  <div class="fees__empty">
+    <p>No fee rules yet.</p>
+  </div>
+  } @else {
+  <div class="fees__table-wrap">
+    <table class="fees__table">
+      <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Transaction</th>
+        <th scope="col">Fee type</th>
+        <th scope="col" class="fees__cell--right">Fixed</th>
+        <th scope="col" class="fees__cell--right">Percent</th>
+        <th scope="col" class="fees__cell--right">Min</th>
+        <th scope="col" class="fees__cell--right">Max</th>
+        <th scope="col">Currency</th>
+        <th scope="col">Active</th>
+        <th scope="col">Updated</th>
+        @if (canManage()) {
+        <th scope="col" class="fees__cell--actions" aria-label="Actions"></th>
+        }
+      </tr>
+      </thead>
+      <tbody>
+      @for (rule of rules(); track rule.id) {
+      <tr class="fees__row">
+        <td>{{ rule.name }}</td>
+        <td>{{ rule.transactionType }}</td>
+        <td>{{ rule.feeType }}</td>
+        <td class="fees__cell--right">{{ rule.fixedAmount ?? '—' }}</td>
+        <td class="fees__cell--right">{{ rule.percentage ?? '—' }}</td>
+        <td class="fees__cell--right">{{ rule.minAmount ?? '—' }}</td>
+        <td class="fees__cell--right">{{ rule.maxAmount ?? '—' }}</td>
+        <td>{{ rule.currency ?? '—' }}</td>
+        <td>
+          <span
+            class="fees__active"
+            [class.fees__active--off]="!rule.isActive"
+          >
+            {{ rule.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td>{{ formatDate(rule.updatedAt) }}</td>
+        @if (canManage()) {
+        <td class="fees__cell--actions">
+          <button
+            type="button"
+            class="fees__link"
+            (click)="openEdit(rule)"
+            [disabled]="formOpen() || deleteBusyId() === rule.id"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="fees__link fees__link--danger"
+            (click)="deleteRule(rule)"
+            [disabled]="deleteBusyId() === rule.id"
+          >
+            {{ deleteBusyId() === rule.id ? 'Deleting…' : 'Delete' }}
+          </button>
+        </td>
+        }
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+  }
+</section>

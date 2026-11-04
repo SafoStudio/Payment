@@ -59,25 +59,41 @@ public class FeeRuleService {
     return feeRuleRepository.save(feeRule);
   }
 
+  /**
+   * Full replacement (PUT semantics): every mutable field is written as sent.
+   * Nullable money/currency/wallet fields are cleared when null, so switching
+   * fee type (e.g. FIXED -> PERCENTAGE) drops the now-irrelevant value.
+   * createdAt is preserved; updatedAt is refreshed.
+   */
   @Transactional
   public FeeRule update(UpdateFeeRuleInput input) {
     FeeRule existing = findByIdInternal(input.id());
 
-    FeeRule.FeeRuleBuilder builder = existing.toBuilder();
+    if (input.name() == null || input.name().isBlank()) {
+      throw BusinessException.validationError("Fee rule name is required");
+    }
+    if (input.transactionType() == null || input.transactionType().isBlank()) {
+      throw BusinessException.validationError("transactionType is required");
+    }
+    if (input.feeType() == null || input.feeType().isBlank()) {
+      throw BusinessException.validationError("feeType is required");
+    }
 
-    if (input.name() != null) builder.name(input.name());
-    if (input.transactionType() != null) builder.transactionType(input.transactionType());
-    if (input.feeType() != null) builder.feeType(parseFeeType(input.feeType()));
-    if (input.fixedAmount() != null) builder.fixedAmount(input.fixedAmount());
-    if (input.percentage() != null) builder.percentage(input.percentage());
-    if (input.minAmount() != null) builder.minAmount(input.minAmount());
-    if (input.maxAmount() != null) builder.maxAmount(input.maxAmount());
-    if (input.currency() != null) builder.currency(input.currency());
-    if (input.fromWalletId() != null) builder.fromWalletId(input.fromWalletId());
-    if (input.toWalletId() != null) builder.toWalletId(input.toWalletId());
-    if (input.isActive() != null) builder.isActive(input.isActive());
+    FeeRule updated = existing.toBuilder()
+            .name(input.name())
+            .transactionType(input.transactionType())
+            .feeType(parseFeeType(input.feeType()))
+            .fixedAmount(input.fixedAmount())
+            .percentage(input.percentage())
+            .minAmount(input.minAmount())
+            .maxAmount(input.maxAmount())
+            .currency(input.currency())
+            .fromWalletId(input.fromWalletId())
+            .toWalletId(input.toWalletId())
+            .isActive(input.isActive() != null && input.isActive())
+            .updatedAt(Instant.now())
+            .build();
 
-    FeeRule updated = builder.build();
     return feeRuleRepository.save(updated);
   }
 
