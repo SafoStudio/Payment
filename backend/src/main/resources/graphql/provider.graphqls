@@ -1,0 +1,126 @@
+type Provider {
+    id: ID!
+    code: String!
+    name: String!
+    adapterKey: String!
+    status: ProviderStatus!
+    type: ProviderType!
+    config: String
+    lastCheckedAt: String
+    createdAt: String!
+    updatedAt: String!
+    capabilities: [ProviderCapability!]!
+    hasCredentials: Boolean!
+}
+
+type ProviderCapability {
+    id: ID!
+    method: PaymentMethod!
+    currency: String!
+    minAmount: String!
+    maxAmount: String!
+    enabled: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type ProviderCredentialKey {
+    id: ID!
+    credentialKey: String!
+    createdAt: String!
+    rotatedAt: String
+}
+
+type ProviderPage {
+    items: [Provider!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
+enum ProviderStatus {
+    ACTIVE
+    DEGRADED
+    DISABLED
+}
+
+enum ProviderType {
+    CARD
+    BANK_TRANSFER
+    WALLET
+}
+
+enum PaymentMethod {
+    CARD
+    BANK_TRANSFER
+    WALLET
+}
+
+input CreateProviderInput {
+    code: String!
+    name: String!
+    adapterKey: String!
+    type: ProviderType!
+    config: String
+}
+
+input UpdateProviderInput {
+    name: String!
+    adapterKey: String!
+    type: ProviderType!
+    config: String
+}
+
+input AddProviderCapabilityInput {
+    method: PaymentMethod!
+    currency: String!
+    minAmount: String!
+    maxAmount: String!
+    enabled: Boolean
+}
+
+input UpdateProviderCapabilityInput {
+    method: PaymentMethod!
+    currency: String!
+    minAmount: String!
+    maxAmount: String!
+    enabled: Boolean
+}
+
+input SetProviderCredentialInput {
+    credentialKey: String!
+    value: String!
+}
+
+input RotateProviderCredentialInput {
+    credentialKey: String!
+    value: String!
+}
+
+extend type Query {
+    providers(
+        status: ProviderStatus
+        type: ProviderType
+        limit: Int = 20
+        after: String
+    ): ProviderPage!
+    provider(id: ID!): Provider
+    providerCapabilities(providerId: ID!): [ProviderCapability!]!
+    providerCredentialKeys(providerId: ID!): [ProviderCredentialKey!]!
+}
+
+extend type Mutation {
+    createProvider(input: CreateProviderInput!): Provider!
+    updateProvider(id: ID!, input: UpdateProviderInput!): Provider!
+    activateProvider(id: ID!): Provider!
+    degradeProvider(id: ID!): Provider!
+    disableProvider(id: ID!): Provider!
+    markProviderChecked(id: ID!): Provider!
+    deleteProvider(id: ID!): Boolean!
+
+    addProviderCapability(providerId: ID!, input: AddProviderCapabilityInput!): ProviderCapability!
+    updateProviderCapability(capabilityId: ID!, input: UpdateProviderCapabilityInput!): ProviderCapability!
+    removeProviderCapability(capabilityId: ID!): Boolean!
+
+    setProviderCredential(providerId: ID!, input: SetProviderCredentialInput!): ProviderCredentialKey!
+    rotateProviderCredential(providerId: ID!, input: RotateProviderCredentialInput!): ProviderCredentialKey!
+}
