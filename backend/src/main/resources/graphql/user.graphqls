@@ -35,6 +35,12 @@ input UpdateUserInput {
     lastName: String
 }
 
+input UpdateMeInput {
+    phone: String
+    firstName: String
+    lastName: String
+}
+
 input UserFilterInput {
     status: UserStatus
     roleCode: String
@@ -57,6 +63,7 @@ extend type Query {
 
 extend type Mutation {
     createUser(input: CreateUserInput!): User!
+    updateMe(input: UpdateMeInput!): User!
     updateUser(id: ID!, input: UpdateUserInput!): User!
     blockUser(id: ID!): User!
     activateUser(id: ID!): User!

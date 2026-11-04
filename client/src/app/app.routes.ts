@@ -127,6 +127,31 @@ export const routes: Routes = [
           },
         ],
       },
+      {
+        path: 'admin/fees',
+        canActivate: [
+          permissionGuard(['fee:read', 'fee_rule:manage']),
+        ],
+        loadComponent: () =>
+          import('@features/admin/fees/fees-page.component').then(
+            (m) => m.FeesPageComponent,
+          ),
+      },
+      {
+        path: 'admin/audit',
+        canActivate: [permissionGuard(['audit:read:all'])],
+        loadComponent: () =>
+          import('@features/admin/audit/audit-log-page.component').then(
+            (m) => m.AuditLogPageComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('@features/settings/settings-page.component').then(
+            (m) => m.SettingsPageComponent,
+          ),
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

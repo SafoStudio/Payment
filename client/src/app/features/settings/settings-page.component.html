@@ -1,0 +1,173 @@
+<section class="settings">
+  <header class="settings__header">
+    <h1 class="settings__title">Settings</h1>
+    <p class="settings__subtitle">Your account profile. Email is your login and is not editable here.</p>
+  </header>
+
+  @if (error(); as err) {
+  <div class="settings__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="settings__retry" (click)="load()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="settings__loading">Loading profile…</div>
+  } @else if (profile(); as p) {
+  <div class="settings__summary">
+    <div class="settings__summary-cell">
+      <span class="settings__label">Email</span>
+      <span class="settings__value settings__mono">{{ p.email }}</span>
+    </div>
+    <div class="settings__summary-cell">
+      <span class="settings__label">Roles</span>
+      <span class="settings__value">{{ p.roles.join(', ') || '—' }}</span>
+    </div>
+    <div class="settings__summary-cell">
+      <span class="settings__label">Status</span>
+      <span class="settings__value">{{ p.status }}</span>
+    </div>
+    <div class="settings__summary-cell">
+      <span class="settings__label">Member since</span>
+      <span class="settings__value">{{ formatDate(p.createdAt) }}</span>
+    </div>
+    <div class="settings__summary-cell">
+      <span class="settings__label">Last updated</span>
+      <span class="settings__value">{{ formatDate(p.updatedAt) }}</span>
+    </div>
+  </div>
+
+  <form
+    class="settings__form"
+    (submit)="$event.preventDefault(); save()"
+  >
+    <p class="settings__form-title">Profile</p>
+
+    <div class="settings__grid">
+      <label class="settings__field">
+        <span class="settings__label">First name</span>
+        <input
+          type="text"
+          class="settings__input"
+          [value]="firstName()"
+          (input)="onFirstNameInput($any($event.target).value)"
+          [disabled]="saving()"
+          autocomplete="given-name"
+        />
+      </label>
+
+      <label class="settings__field">
+        <span class="settings__label">Last name</span>
+        <input
+          type="text"
+          class="settings__input"
+          [value]="lastName()"
+          (input)="onLastNameInput($any($event.target).value)"
+          [disabled]="saving()"
+          autocomplete="family-name"
+        />
+      </label>
+
+      <label class="settings__field">
+        <span class="settings__label">Phone</span>
+        <input
+          type="text"
+          class="settings__input"
+          [value]="phone()"
+          (input)="onPhoneInput($any($event.target).value)"
+          [disabled]="saving()"
+          placeholder="+1 555 0100"
+          autocomplete="tel"
+        />
+      </label>
+    </div>
+
+    @if (saveError(); as se) {
+    <p class="settings__form-error" role="alert">{{ se }}</p>
+    }
+    @if (savedAt()) {
+    <p class="settings__form-success">Profile saved.</p>
+    }
+
+    <div class="settings__form-actions">
+      <button
+        type="submit"
+        class="settings__primary"
+        [disabled]="saving() || !dirty()"
+      >
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+      <button
+        type="button"
+        class="settings__secondary"
+        (click)="reset()"
+        [disabled]="saving() || !dirty()"
+      >
+        Reset
+      </button>
+    </div>
+  </form>
+
+  <section class="settings__passkeys">
+    <header class="settings__passkeys-header">
+      <div>
+        <h2 class="settings__passkeys-title">Passkeys</h2>
+        <p class="settings__passkeys-subtitle">
+          Registered credentials for passwordless sign-in. Revoking removes the server-side key;
+          the local copy stays in your browser until you delete it there.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="settings__primary"
+        (click)="addPasskey()"
+        [disabled]="passkeyAddBusy() || passkeysLoading()"
+      >
+        {{ passkeyAddBusy() ? 'Adding…' : 'Add passkey' }}
+      </button>
+    </header>
+
+    @if (passkeysError(); as pe) {
+    <p class="settings__form-error" role="alert">{{ pe }}</p>
+    }
+
+    @if (passkeysLoading()) {
+    <div class="settings__loading">Loading passkeys…</div>
+    } @else if (passkeys().length === 0) {
+    <div class="settings__empty">No passkeys registered.</div>
+    } @else {
+    <div class="settings__table-wrap">
+      <table class="settings__table">
+        <thead>
+        <tr>
+          <th scope="col">Label</th>
+          <th scope="col">Created</th>
+          <th scope="col">Last used</th>
+          <th scope="col" class="settings__cell--actions" aria-label="Actions"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (pk of passkeys(); track pk.credentialId) {
+        <tr class="settings__row">
+          <td>{{ pk.label }}</td>
+          <td>{{ pk.created ? formatDate(pk.created) : '—' }}</td>
+          <td>{{ pk.lastUsed ? formatDate(pk.lastUsed) : '—' }}</td>
+          <td class="settings__cell--actions">
+            <button
+              type="button"
+              class="settings__link settings__link--danger"
+              (click)="revokePasskey(pk.credentialId)"
+              [disabled]="passkeyBusyId() === pk.credentialId"
+            >
+              {{ passkeyBusyId() === pk.credentialId ? 'Revoking…' : 'Revoke' }}
+            </button>
+          </td>
+        </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+  }
+</section>

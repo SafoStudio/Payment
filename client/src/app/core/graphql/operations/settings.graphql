@@ -1,0 +1,28 @@
+query MeProfile {
+  me {
+    id
+    email
+    phone
+    firstName
+    lastName
+    fullName
+    roles
+    permissions
+    hasPasskey
+    status
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateMe($input: UpdateMeInput!) {
+  updateMe(input: $input) {
+    id
+    email
+    phone
+    firstName
+    lastName
+    fullName
+    updatedAt
+  }
+}

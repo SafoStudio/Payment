@@ -55,7 +55,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/auth/**").permitAll()
                     .requestMatchers("/graphql", "/graphiql/**").permitAll()
-                    .requestMatchers("/webauthn/**", "/login/**").permitAll()
+                    .requestMatchers("/webauthn/register/**", "/webauthn/authenticate/**").permitAll()
+                    .requestMatchers("/login/**").permitAll()
+                    .requestMatchers("/webauthn/credentials/**").authenticated()
                     .anyRequest().authenticated())
             .httpBasic(withDefaults())
             .formLogin(withDefaults())
@@ -64,7 +66,7 @@ public class SecurityConfig {
                     .rpName("Payment Platform")
                     .allowedOrigins("http://localhost:4200", "http://localhost:8080"))
             .csrf(csrf -> csrf
-                    .ignoringRequestMatchers("/graphql", "/auth/**", "/webauthn/**", "/login/webauthn"))
+                    .ignoringRequestMatchers("/graphql", "/auth/**", "/webauthn/**", "/webauthn/credentials/**", "/login/webauthn"))
             .addFilterBefore(webauthnTxFilter, AuthorizationFilter.class)
             .addFilterBefore(normalizerFilter, AuthorizationFilter.class)
             .build();

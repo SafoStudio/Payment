@@ -124,21 +124,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     id: 'admin',
     label: 'Admin',
     icon: '☰',
-    permissions: ['role:manage:all', 'merchant:manage:all'],
+    permissions: ['fee:manage:all', 'audit:read:all'],
     sections: [
       {
-        title: 'Platform',
+        title: 'Configuration',
         hideTitle: true,
         links: [
-          { label: 'Merchants', link: '/dashboard' },
-          { label: 'Roles & permissions', link: '/dashboard' },
-        ],
-      },
-      {
-        title: 'Configuration',
-        links: [
-          { label: 'Fees & tariffs', link: '/dashboard' },
-          { label: 'Audit log', link: '/dashboard' },
+          { label: 'Fees & tariffs', link: '/admin/fees' },
+          { label: 'Audit log', link: '/admin/audit' },
         ],
       },
     ],
@@ -148,6 +141,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: 'Settings',
     icon: '⚙',
     permissions: ['user:read:own'],
-    link: '/dashboard',
+    link: '/settings',
   },
 ];

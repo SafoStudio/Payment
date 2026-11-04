@@ -1,8 +1,10 @@
 package com.safostudio.payment.user.api;
 
 import com.safostudio.payment.user.api.input.CreateUserInput;
+import com.safostudio.payment.user.api.input.UpdateMeInput;
 import com.safostudio.payment.user.api.input.UpdateUserInput;
 import com.safostudio.payment.user.api.input.UserFilterInput;
+import com.safostudio.payment.user.dto.UpdateMeRequest;
 import com.safostudio.payment.user.dto.UserPageResponse;
 import com.safostudio.payment.user.service.UserQueryService;
 import com.safostudio.payment.user.service.UserService;
@@ -76,6 +78,21 @@ public class UserController {
             .roleCodes(input.roleCodes())
             .build();
     return userService.createUser(request);
+  }
+
+  /**
+   * Self-service profile update. Only the authenticated user's own record is
+   * touched; email is excluded on purpose (login identifier, separate flow).
+   */
+  @PreAuthorize("isAuthenticated()")
+  @MutationMapping
+  public UserResponse updateMe(@Argument UpdateMeInput input) {
+    UpdateMeRequest request = UpdateMeRequest.builder()
+            .phone(input.phone())
+            .firstName(input.firstName())
+            .lastName(input.lastName())
+            .build();
+    return userService.updateCurrentUser(request);
   }
 
   @PreAuthorize("hasAuthority('user:update')")

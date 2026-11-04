@@ -5,6 +5,7 @@ import com.safostudio.payment.shared.security.AppUserDetails;
 import com.safostudio.payment.user.domain.Role;
 import com.safostudio.payment.user.domain.User;
 import com.safostudio.payment.user.dto.CreateUserRequest;
+import com.safostudio.payment.user.dto.UpdateMeRequest;
 import com.safostudio.payment.user.dto.UpdateUserRequest;
 import com.safostudio.payment.user.dto.UserResponse;
 import com.safostudio.payment.user.repository.RoleRepository;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -76,11 +76,7 @@ public class UserService {
 
   @Transactional(readOnly = true)
   public UserResponse getCurrentUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !(authentication.getPrincipal() instanceof AppUserDetails principal)) {
-      throw new IllegalStateException("getCurrentUser called without authenticated AppUserDetails principal");
-    }
-
+    AppUserDetails principal = currentPrincipal();
     User user = findUserById(principal.getUserId());
 
     List<String> roleCodes = new ArrayList<>();
@@ -100,6 +96,33 @@ public class UserService {
     boolean hasPasskey = hasPasskey(user.getEmail());
 
     return UserResponse.fromDomain(user, roleCodes, permissions, hasPasskey);
+  }
+
+  /**
+   * Self-service profile update for the authenticated user. Email is intentionally
+   * excluded: it is the login identifier and changing it is a separate flow.
+   * Partial semantics: null fields are left untouched.
+   */
+  @Transactional
+  public UserResponse updateCurrentUser(UpdateMeRequest request) {
+    AppUserDetails principal = currentPrincipal();
+    User user = findUserById(principal.getUserId());
+
+    if (request.getPhone() != null && !request.getPhone().equals(user.getPhone())) {
+      if (userRepository.existsByPhone(request.getPhone())) {
+        throw BusinessException.userAlreadyExists("phone", request.getPhone());
+      }
+      user.updatePhone(request.getPhone());
+    }
+
+    if (request.getFirstName() != null || request.getLastName() != null) {
+      String firstName = request.getFirstName() != null ? request.getFirstName() : user.getFirstName();
+      String lastName = request.getLastName() != null ? request.getLastName() : user.getLastName();
+      user.updateName(firstName, lastName);
+    }
+
+    User saved = userRepository.save(user);
+    return toResponse(saved);
   }
 
   @Transactional(readOnly = true)
@@ -230,6 +253,14 @@ public class UserService {
     userRoleRepository.removeRole(userId, role.getId());
 
     return toResponse(user);
+  }
+
+  private AppUserDetails currentPrincipal() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !(authentication.getPrincipal() instanceof AppUserDetails principal)) {
+      throw new IllegalStateException("Authenticated AppUserDetails principal is required");
+    }
+    return principal;
   }
 
   private boolean hasPasskey(String email) {
