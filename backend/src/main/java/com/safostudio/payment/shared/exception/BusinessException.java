@@ -171,6 +171,38 @@ public class BusinessException extends RuntimeException {
     return new BusinessException(ErrorCode.FEE_RULE_NOT_FOUND, "Fee rule not found: " + id);
   }
 
+  public static BusinessException providerNotFound(UUID id) {
+    return new BusinessException(ErrorCode.PROVIDER_NOT_FOUND, "Provider not found: " + id);
+  }
+
+  public static BusinessException providerAlreadyExists(String field, String value) {
+    return new BusinessException(ErrorCode.PROVIDER_ALREADY_EXISTS,
+            "Provider with %s %s already exists".formatted(field, value));
+  }
+
+  public static BusinessException providerCapabilityNotFound(UUID id) {
+    return new BusinessException(ErrorCode.PROVIDER_CAPABILITY_NOT_FOUND,
+            "Provider capability not found: " + id);
+  }
+
+  public static BusinessException providerCapabilityAlreadyExists(UUID providerId,
+                                                                  String method,
+                                                                  String currency) {
+    return new BusinessException(ErrorCode.PROVIDER_CAPABILITY_ALREADY_EXISTS,
+            "Provider capability %s/%s already exists for provider %s"
+                    .formatted(method, currency, providerId));
+  }
+
+  public static BusinessException providerCredentialNotFound(UUID providerId, String credentialKey) {
+    return new BusinessException(ErrorCode.PROVIDER_CREDENTIAL_NOT_FOUND,
+            "Provider credential %s not found for provider %s".formatted(credentialKey, providerId));
+  }
+
+  public static BusinessException providerCredentialAlreadyExists(UUID providerId, String credentialKey) {
+    return new BusinessException(ErrorCode.PROVIDER_CREDENTIAL_ALREADY_EXISTS,
+            "Provider credential %s already exists for provider %s".formatted(credentialKey, providerId));
+  }
+
   public static BusinessException validationError(String message) {
     return new BusinessException(ErrorCode.VALIDATION_ERROR, message);
   }
