@@ -17,47 +17,44 @@ import java.util.UUID;
 @Table("audit_log")
 public class AuditLog {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private String entityType;
+  private String entityType;
 
-    private UUID entityId;
+  private UUID recordId;
 
-    private String action;
+  private String action;
 
-    private UUID userId;
+  private UUID userId;
 
-    private String userRole;
+  private String userRole;
 
-    private String oldValue;
+  private String oldData;
 
-    private String newValue;
+  private String newData;
 
-    private String ipAddress;
+  private String ipAddress;
 
-    private String userAgent;
+  private String userAgent;
 
-    private Instant createdAt;
+  private Instant createdAt;
 
-    /**
-     * Creates an audit log entry
-     */
-    public static AuditLog create(String entityType, UUID entityId,
-                                  String action, UUID userId,
-                                  String oldValue, String newValue,
-                                  String ipAddress, String userAgent) {
-        return AuditLog.builder()
-                .id(null)
-                .entityType(entityType)
-                .entityId(entityId)
-                .action(action)
-                .userId(userId)
-                .oldValue(oldValue)
-                .newValue(newValue)
-                .ipAddress(ipAddress)
-                .userAgent(userAgent)
-                .createdAt(Instant.now())
-                .build();
-    }
+  public static AuditLog create(String entityType, UUID recordId,
+                                String action, UUID userId,
+                                String oldData, String newData,
+                                String ipAddress, String userAgent) {
+    return AuditLog.builder()
+            .id(null)
+            .entityType(entityType)
+            .recordId(recordId)
+            .action(action)
+            .userId(userId)
+            .oldData(oldData)
+            .newData(newData)
+            .ipAddress(ipAddress)
+            .userAgent(userAgent)
+            .createdAt(Instant.now())
+            .build();
+  }
 }

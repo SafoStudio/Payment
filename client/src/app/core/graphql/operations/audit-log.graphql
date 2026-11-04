@@ -1,0 +1,31 @@
+query AuditLogs(
+  $entityType: String
+  $action: String
+  $userId: ID
+  $limit: Int
+  $after: String
+) {
+  auditLogs(
+    entityType: $entityType
+    action: $action
+    userId: $userId
+    limit: $limit
+    after: $after
+  ) {
+    items {
+      id
+      entityType
+      recordId
+      action
+      userId
+      userRole
+      oldData
+      newData
+      ipAddress
+      userAgent
+      createdAt
+    }
+    nextCursor
+    hasMore
+  }
+}

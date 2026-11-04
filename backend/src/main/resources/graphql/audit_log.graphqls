@@ -1,0 +1,29 @@
+type AuditLogEntry {
+    id: ID!
+    entityType: String!
+    recordId: ID!
+    action: String!
+    userId: ID
+    userRole: String
+    oldData: String
+    newData: String
+    ipAddress: String
+    userAgent: String
+    createdAt: String!
+}
+
+type AuditLogPage {
+    items: [AuditLogEntry!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
+extend type Query {
+    auditLogs(
+        entityType: String
+        action: String
+        userId: ID
+        limit: Int = 20
+        after: String
+    ): AuditLogPage!
+}

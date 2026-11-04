@@ -1,0 +1,155 @@
+<section class="audit">
+  <header class="audit__header">
+    <div>
+      <h1 class="audit__title">Audit log</h1>
+      <p class="audit__subtitle">Immutable record of privileged actions.</p>
+    </div>
+    <button
+      type="button"
+      class="audit__refresh"
+      (click)="reload()"
+      [disabled]="loading()"
+    >
+      {{ loading() ? 'Loading…' : 'Refresh' }}
+    </button>
+  </header>
+
+  <div class="audit__filters">
+    <label class="audit__field">
+      <span class="audit__label">Entity</span>
+      <select
+        class="audit__input"
+        [value]="entityType()"
+        (change)="onEntityTypeChange($any($event.target).value)"
+      >
+        @for (opt of entityTypeOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="audit__field">
+      <span class="audit__label">Action</span>
+      <select
+        class="audit__input"
+        [value]="action()"
+        (change)="onActionChange($any($event.target).value)"
+      >
+        @for (opt of actionOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="audit__field audit__field--wide">
+      <span class="audit__label">User ID (optional)</span>
+      <input
+        type="text"
+        class="audit__input audit__input--mono"
+        [value]="userId()"
+        (input)="onUserIdInput($any($event.target).value)"
+        placeholder="UUID"
+        autocomplete="off"
+      />
+    </label>
+
+    <button
+      type="button"
+      class="audit__apply"
+      (click)="applyUserIdFilter()"
+      [disabled]="loading()"
+    >
+      Apply
+    </button>
+  </div>
+
+  @if (error(); as err) {
+  <div class="audit__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="audit__retry" (click)="reload()">
+      Try again
+    </button>
+  </div>
+  } @else if (loading()) {
+  <div class="audit__loading">Loading audit entries…</div>
+  } @else if (isEmpty()) {
+  <div class="audit__empty">
+    <p>No audit entries yet.</p>
+  </div>
+  } @else {
+  <div class="audit__table-wrap">
+    <table class="audit__table">
+      <thead>
+      <tr>
+        <th scope="col">Created</th>
+        <th scope="col">Entity</th>
+        <th scope="col">Action</th>
+        <th scope="col">Record</th>
+        <th scope="col">User</th>
+        <th scope="col">IP</th>
+        <th scope="col" class="audit__cell--chevron" aria-label="Expand"></th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (row of items(); track row.id) {
+      <tr class="audit__row">
+        <td>{{ formatDate(row.createdAt) }}</td>
+        <td>{{ row.entityType }}</td>
+        <td>{{ row.action }}</td>
+        <td class="audit__mono">{{ row.recordId }}</td>
+        <td class="audit__mono">{{ row.userId ?? '—' }}</td>
+        <td class="audit__mono">{{ row.ipAddress ?? '—' }}</td>
+        <td class="audit__cell--chevron">
+          <button
+            type="button"
+            class="audit__expand"
+            (click)="toggleExpand(row.id)"
+            [attr.aria-expanded]="expandedId() === row.id"
+          >
+            {{ expandedId() === row.id ? '▾' : '▸' }}
+          </button>
+        </td>
+      </tr>
+      @if (expandedId() === row.id) {
+      <tr class="audit__row audit__row--expanded">
+        <td colspan="7">
+          <div class="audit__detail">
+            <div class="audit__detail-block">
+              <span class="audit__label">Old value</span>
+              <pre class="audit__pre">{{ prettyJson(row.oldData) }}</pre>
+            </div>
+            <div class="audit__detail-block">
+              <span class="audit__label">New value</span>
+              <pre class="audit__pre">{{ prettyJson(row.newData) }}</pre>
+            </div>
+            <div class="audit__detail-block audit__detail-block--wide">
+              <span class="audit__label">User agent</span>
+              <span class="audit__value">{{ row.userAgent ?? '—' }}</span>
+            </div>
+            <div class="audit__detail-block">
+              <span class="audit__label">User role</span>
+              <span class="audit__value">{{ row.userRole ?? '—' }}</span>
+            </div>
+          </div>
+        </td>
+      </tr>
+      }
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="audit__more">
+    <button
+      type="button"
+      class="audit__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>
