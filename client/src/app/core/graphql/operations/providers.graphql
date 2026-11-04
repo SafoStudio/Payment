@@ -1,0 +1,213 @@
+query Providers($status: ProviderStatus, $type: ProviderType, $limit: Int, $after: String) {
+  providers(status: $status, type: $type, limit: $limit, after: $after) {
+    items {
+      id
+      code
+      name
+      adapterKey
+      status
+      type
+      config
+      lastCheckedAt
+      createdAt
+      updatedAt
+      hasCredentials
+      capabilities {
+        id
+        method
+        currency
+        minAmount
+        maxAmount
+        enabled
+        createdAt
+        updatedAt
+      }
+    }
+    nextCursor
+    hasMore
+  }
+}
+
+query Provider($id: ID!) {
+  provider(id: $id) {
+    id
+    code
+    name
+    adapterKey
+    status
+    type
+    config
+    lastCheckedAt
+    createdAt
+    updatedAt
+    hasCredentials
+    capabilities {
+      id
+      method
+      currency
+      minAmount
+      maxAmount
+      enabled
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query ProviderCapabilities($providerId: ID!) {
+  providerCapabilities(providerId: $providerId) {
+    id
+    method
+    currency
+    minAmount
+    maxAmount
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+query ProviderCredentialKeys($providerId: ID!) {
+  providerCredentialKeys(providerId: $providerId) {
+    id
+    credentialKey
+    createdAt
+    rotatedAt
+  }
+}
+
+mutation CreateProvider($input: CreateProviderInput!) {
+  createProvider(input: $input) {
+    id
+    code
+    name
+    adapterKey
+    status
+    type
+    config
+    lastCheckedAt
+    createdAt
+    updatedAt
+    hasCredentials
+    capabilities {
+      id
+      method
+      currency
+      minAmount
+      maxAmount
+      enabled
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation UpdateProvider($id: ID!, $input: UpdateProviderInput!) {
+  updateProvider(id: $id, input: $input) {
+    id
+    code
+    name
+    adapterKey
+    status
+    type
+    config
+    lastCheckedAt
+    createdAt
+    updatedAt
+    hasCredentials
+    capabilities {
+      id
+      method
+      currency
+      minAmount
+      maxAmount
+      enabled
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation ActivateProvider($id: ID!) {
+  activateProvider(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation DegradeProvider($id: ID!) {
+  degradeProvider(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation DisableProvider($id: ID!) {
+  disableProvider(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation MarkProviderChecked($id: ID!) {
+  markProviderChecked(id: $id) {
+    id
+    lastCheckedAt
+    updatedAt
+  }
+}
+
+mutation DeleteProvider($id: ID!) {
+  deleteProvider(id: $id)
+}
+
+mutation AddProviderCapability($providerId: ID!, $input: AddProviderCapabilityInput!) {
+  addProviderCapability(providerId: $providerId, input: $input) {
+    id
+    method
+    currency
+    minAmount
+    maxAmount
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateProviderCapability($capabilityId: ID!, $input: UpdateProviderCapabilityInput!) {
+  updateProviderCapability(capabilityId: $capabilityId, input: $input) {
+    id
+    method
+    currency
+    minAmount
+    maxAmount
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+mutation RemoveProviderCapability($capabilityId: ID!) {
+  removeProviderCapability(capabilityId: $capabilityId)
+}
+
+mutation SetProviderCredential($providerId: ID!, $input: SetProviderCredentialInput!) {
+  setProviderCredential(providerId: $providerId, input: $input) {
+    id
+    credentialKey
+    createdAt
+    rotatedAt
+  }
+}
+
+mutation RotateProviderCredential($providerId: ID!, $input: RotateProviderCredentialInput!) {
+  rotateProviderCredential(providerId: $providerId, input: $input) {
+    id
+    credentialKey
+    createdAt
+    rotatedAt
+  }
+}

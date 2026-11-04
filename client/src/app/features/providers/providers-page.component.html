@@ -1,0 +1,178 @@
+<section class="providers-page">
+  <header class="providers-page__header">
+    <h1 class="providers-page__title">Providers</h1>
+    @if (canManage()) {
+    <button type="button" class="providers-page__action" (click)="toggleCreate()">
+      {{ createOpen() ? 'Cancel' : 'Create provider' }}
+    </button>
+    }
+  </header>
+
+  <div class="providers-page__filters">
+    <label class="providers-page__filter">
+      <span class="providers-page__label">Status</span>
+      <select
+        class="providers-page__input"
+        [value]="status()"
+        (change)="onStatusChange($any($event.target).value)"
+      >
+        @for (o of statusOptions; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="providers-page__filter">
+      <span class="providers-page__label">Type</span>
+      <select
+        class="providers-page__input"
+        [value]="type()"
+        (change)="onTypeChange($any($event.target).value)"
+      >
+        @for (o of typeOptions; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (createOpen()) {
+  <form class="providers-page__form" (submit)="$event.preventDefault(); create()">
+    <div class="providers-page__form-row">
+      <label class="providers-page__field">
+        <span class="providers-page__label">Code</span>
+        <input
+          class="providers-page__input"
+          type="text"
+          [value]="newCode()"
+          (input)="onNewCodeInput($any($event.target).value)"
+          placeholder="mock-card-2"
+          required
+        />
+      </label>
+      <label class="providers-page__field">
+        <span class="providers-page__label">Name</span>
+        <input
+          class="providers-page__input"
+          type="text"
+          [value]="newName()"
+          (input)="onNewNameInput($any($event.target).value)"
+          placeholder="Mock Card 2"
+          required
+        />
+      </label>
+    </div>
+
+    <div class="providers-page__form-row">
+      <label class="providers-page__field">
+        <span class="providers-page__label">Adapter</span>
+        <select
+          class="providers-page__input"
+          [value]="newAdapterKey()"
+          (change)="onNewAdapterKeyChange($any($event.target).value)"
+        >
+          @for (a of adapterOptions; track a) {
+          <option [value]="a">{{ a }}</option>
+          }
+        </select>
+      </label>
+      <label class="providers-page__field">
+        <span class="providers-page__label">Type</span>
+        <select
+          class="providers-page__input"
+          [value]="newType()"
+          (change)="onNewTypeChange($any($event.target).value)"
+        >
+          @for (t of typeOptions; track t.value) {
+          @if (t.value !== '') {
+          <option [value]="t.value">{{ t.label }}</option>
+          }
+          }
+        </select>
+      </label>
+    </div>
+
+    <label class="providers-page__field">
+      <span class="providers-page__label">Config (JSON)</span>
+      <textarea
+        class="providers-page__input providers-page__textarea"
+        [value]="newConfig()"
+        (input)="onNewConfigInput($any($event.target).value)"
+        rows="3"
+      ></textarea>
+    </label>
+
+    @if (createError(); as err) {
+    <p class="providers-page__error">{{ err }}</p>
+    }
+
+    <div class="providers-page__form-actions">
+      <button type="submit" class="providers-page__action" [disabled]="creating()">
+        {{ creating() ? 'Creating…' : 'Create' }}
+      </button>
+      <button type="button" class="providers-page__action providers-page__action--ghost" (click)="toggleCreate()">
+        Cancel
+      </button>
+    </div>
+  </form>
+  }
+
+  @if (loading()) {
+  <p class="providers-page__loading">Loading…</p>
+  } @else if (error(); as err) {
+  <div class="providers-page__error-block">
+    <p class="providers-page__error">{{ err.message }}</p>
+    <button type="button" class="providers-page__action" (click)="reload()">Retry</button>
+  </div>
+  } @else if (isEmpty()) {
+  <p class="providers-page__empty">No providers yet.</p>
+  } @else {
+  <div class="providers-page__table-wrap">
+    <table class="providers-page__table">
+      <thead>
+      <tr>
+        <th>Code</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Adapter</th>
+        <th>Capabilities</th>
+        <th>Credentials</th>
+        <th>Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      @for (p of items(); track p.id) {
+      <tr class="providers-page__row">
+        <td>
+          <a class="providers-page__link" [routerLink]="['/providers', p.id]">{{ p.code }}</a>
+        </td>
+        <td>{{ p.name }}</td>
+        <td>
+          <span [class]="'status ' + statusClass(p.status)">{{ p.status }}</span>
+        </td>
+        <td>{{ p.type }}</td>
+        <td class="providers-page__mono">{{ p.adapterKey }}</td>
+        <td>{{ p.capabilities.length }}</td>
+        <td>{{ p.hasCredentials ? 'yes' : 'no' }}</td>
+        <td>{{ formatDate(p.createdAt) }}</td>
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (hasMore()) {
+  <div class="providers-page__more">
+    <button
+      type="button"
+      class="providers-page__action"
+      [disabled]="loadingMore()"
+      (click)="loadMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>

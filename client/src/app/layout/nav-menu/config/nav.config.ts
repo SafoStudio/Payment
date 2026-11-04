@@ -78,23 +78,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     label: 'Providers',
     icon: '⇋',
     permissions: ['provider:read:own', 'provider:manage:all'],
-    sections: [
-      {
-        title: 'Connected',
-        hideTitle: true,
-        links: [
-          { label: 'Connected providers', link: '/dashboard' },
-          { label: 'Catalog', link: '/dashboard' },
-        ],
-      },
-      {
-        title: 'Orchestration',
-        links: [
-          { label: 'Routing rules', link: '/dashboard' },
-          { label: 'Health', link: '/dashboard' },
-        ],
-      },
-    ],
+    link: '/providers',
   },
   {
     id: 'developers',

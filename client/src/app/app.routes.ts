@@ -128,6 +128,28 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'providers',
+        canActivate: [
+          permissionGuard(['provider:read:own', 'provider:manage:all']),
+        ],
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('@features/providers/providers-page.component').then(
+                (m) => m.ProvidersPageComponent,
+              ),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                '@features/providers/provider-detail/provider-detail-page.component'
+              ).then((m) => m.ProviderDetailPageComponent),
+          },
+        ],
+      },
+      {
         path: 'admin/fees',
         canActivate: [
           permissionGuard(['fee:read', 'fee_rule:manage']),

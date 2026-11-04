@@ -2,7 +2,7 @@
   <header class="provider-detail__header">
     <a class="provider-detail__back" routerLink="/providers">← Providers</a>
     <h1 class="provider-detail__title">
-      @if (_provider(); as p) {
+      @if (provider(); as p) {
       {{ p.name }}
       } @else {
       Provider
@@ -10,14 +10,14 @@
     </h1>
   </header>
 
-  @if (_loading()) {
+  @if (loading()) {
   <p class="provider-detail__loading">Loading…</p>
-  } @else if (_error(); as err) {
+  } @else if (error(); as err) {
   <div class="provider-detail__error-block">
-    <p class="provider-detail__error">{{ err }}</p>
-    <button type="button" class="provider-detail__action" (click)="reload()">Retry</button>
+    <p class="provider-detail__error">{{ err.message }}</p>
+    <button type="button" class="provider-detail__action" (click)="load()">Retry</button>
   </div>
-  } @else if (_provider(); as p) {
+  } @else if (provider(); as p) {
   <div class="provider-detail__summary">
     <div class="provider-detail__summary-cell">
       <span class="provider-detail__label">Code</span>
@@ -25,7 +25,7 @@
     </div>
     <div class="provider-detail__summary-cell">
       <span class="provider-detail__label">Status</span>
-      <span [class]="'status ' + providerStatusClass(p.status)">{{ p.status }}</span>
+      <span [class]="'status ' + statusClass(p.status)">{{ p.status }}</span>
     </div>
     <div class="provider-detail__summary-cell">
       <span class="provider-detail__label">Type</span>
@@ -59,37 +59,37 @@
 
   @if (canManage()) {
   <div class="provider-detail__actions">
-    <button type="button" class="provider-detail__action" (click)="toggleEdit()" [disabled]="_working()">
-      {{ _showEdit() ? 'Cancel edit' : 'Edit' }}
+    <button type="button" class="provider-detail__action" (click)="toggleEdit()" [disabled]="actionBusy()">
+      {{ editOpen() ? 'Cancel edit' : 'Edit' }}
     </button>
     @if (p.status !== 'ACTIVE') {
-    <button type="button" class="provider-detail__action" (click)="activate()" [disabled]="_working()">Activate</button>
+    <button type="button" class="provider-detail__action" (click)="activate()" [disabled]="actionBusy()">Activate</button>
     }
     @if (p.status !== 'DEGRADED') {
-    <button type="button" class="provider-detail__action" (click)="degrade()" [disabled]="_working()">Degrade</button>
+    <button type="button" class="provider-detail__action" (click)="degrade()" [disabled]="actionBusy()">Degrade</button>
     }
     @if (p.status !== 'DISABLED') {
-    <button type="button" class="provider-detail__action" (click)="disable()" [disabled]="_working()">Disable</button>
+    <button type="button" class="provider-detail__action" (click)="disable()" [disabled]="actionBusy()">Disable</button>
     }
-    <button type="button" class="provider-detail__action" (click)="markChecked()" [disabled]="_working()">
+    <button type="button" class="provider-detail__action" (click)="markChecked()" [disabled]="actionBusy()">
       Mark checked
     </button>
     <button
       type="button"
       class="provider-detail__action provider-detail__action--danger"
       (click)="deleteProvider()"
-      [disabled]="_working()"
+      [disabled]="actionBusy()"
     >
       Delete
     </button>
   </div>
   }
 
-  @if (_actionError(); as err) {
+  @if (actionError(); as err) {
   <p class="provider-detail__error">{{ err }}</p>
   }
 
-  @if (_showEdit()) {
+  @if (editOpen()) {
   <form class="provider-detail__form" (submit)="$event.preventDefault(); saveEdit()">
     <h2 class="provider-detail__section-title">Edit provider</h2>
     <div class="provider-detail__form-row">
@@ -98,8 +98,8 @@
         <input
           class="provider-detail__input"
           type="text"
-          [value]="_editName()"
-          (input)="_editName.set($any($event.target).value)"
+          [value]="editName()"
+          (input)="onEditNameInput($any($event.target).value)"
           required
         />
       </label>
@@ -107,10 +107,10 @@
         <span class="provider-detail__label">Adapter</span>
         <select
           class="provider-detail__input"
-          [value]="_editAdapterKey()"
-          (change)="_editAdapterKey.set($any($event.target).value)"
+          [value]="editAdapterKey()"
+          (change)="onEditAdapterChange($any($event.target).value)"
         >
-          @for (a of adapterKeys; track a) {
+          @for (a of adapterOptions; track a) {
           <option [value]="a">{{ a }}</option>
           }
         </select>
@@ -119,10 +119,10 @@
         <span class="provider-detail__label">Type</span>
         <select
           class="provider-detail__input"
-          [value]="_editType()"
-          (change)="_editType.set($any($event.target).value)"
+          [value]="editType()"
+          (change)="onEditTypeChange($any($event.target).value)"
         >
-          @for (t of types; track t) {
+          @for (t of typeOptions; track t) {
           <option [value]="t">{{ t }}</option>
           }
         </select>
@@ -132,14 +132,14 @@
       <span class="provider-detail__label">Config (JSON)</span>
       <textarea
         class="provider-detail__input provider-detail__textarea"
-        [value]="_editConfig()"
-        (input)="_editConfig.set($any($event.target).value)"
+        [value]="editConfig()"
+        (input)="onEditConfigInput($any($event.target).value)"
         rows="3"
       ></textarea>
     </label>
     <div class="provider-detail__form-actions">
-      <button type="submit" class="provider-detail__action" [disabled]="_working()">
-        {{ _working() ? 'Saving…' : 'Save' }}
+      <button type="submit" class="provider-detail__action" [disabled]="actionBusy()">
+        {{ actionBusy() ? 'Saving…' : 'Save' }}
       </button>
       <button type="button" class="provider-detail__action provider-detail__action--ghost" (click)="toggleEdit()">
         Cancel
@@ -152,22 +152,22 @@
     <header class="provider-detail__section-header">
       <h2 class="provider-detail__section-title">Capabilities</h2>
       @if (canManage()) {
-      <button type="button" class="provider-detail__action" (click)="toggleCapabilityForm()">
-        {{ _showCapabilityForm() && !_editingCapabilityId() ? 'Cancel' : 'Add capability' }}
+      <button type="button" class="provider-detail__action" (click)="openCapabilityForm()">
+        {{ capFormOpen() && !editingCapabilityId() ? 'Cancel' : 'Add capability' }}
       </button>
       }
     </header>
 
-    @if (_showCapabilityForm() && canManage()) {
+    @if (capFormOpen() && canManage()) {
     <form class="provider-detail__form" (submit)="$event.preventDefault(); saveCapability()">
       <h3 class="provider-detail__section-subtitle">
-        {{ _editingCapabilityId() ? 'Edit capability' : 'New capability' }}
+        {{ editingCapabilityId() ? 'Edit capability' : 'New capability' }}
       </h3>
       <div class="provider-detail__form-row">
         <label class="provider-detail__field">
           <span class="provider-detail__label">Method</span>
-          <select class="provider-detail__input" [value]="_capMethod()" (change)="_capMethod.set($any($event.target).value)">
-            @for (m of methods; track m) {
+          <select class="provider-detail__input" [value]="capMethod()" (change)="onCapMethodChange($any($event.target).value)">
+            @for (m of methodOptions; track m) {
             <option [value]="m">{{ m }}</option>
             }
           </select>
@@ -178,8 +178,8 @@
             class="provider-detail__input"
             type="text"
             maxlength="3"
-            [value]="_capCurrency()"
-            (input)="_capCurrency.set($any($event.target).value)"
+            [value]="capCurrency()"
+            (input)="onCapCurrencyInput($any($event.target).value)"
             required
           />
         </label>
@@ -188,8 +188,8 @@
           <input
             class="provider-detail__input"
             type="text"
-            [value]="_capMin()"
-            (input)="_capMin.set($any($event.target).value)"
+            [value]="capMin()"
+            (input)="onCapMinInput($any($event.target).value)"
             required
           />
         </label>
@@ -198,25 +198,25 @@
           <input
             class="provider-detail__input"
             type="text"
-            [value]="_capMax()"
-            (input)="_capMax.set($any($event.target).value)"
+            [value]="capMax()"
+            (input)="onCapMaxInput($any($event.target).value)"
             required
           />
         </label>
         <label class="provider-detail__field provider-detail__field--check">
           <input
             type="checkbox"
-            [checked]="_capEnabled()"
-            (change)="_capEnabled.set($any($event.target).checked)"
+            [checked]="capEnabled()"
+            (change)="onCapEnabledChange($any($event.target).checked)"
           />
           <span class="provider-detail__label">Enabled</span>
         </label>
       </div>
       <div class="provider-detail__form-actions">
-        <button type="submit" class="provider-detail__action" [disabled]="_working()">
-          {{ _working() ? 'Saving…' : 'Save' }}
+        <button type="submit" class="provider-detail__action" [disabled]="actionBusy()">
+          {{ actionBusy() ? 'Saving…' : 'Save' }}
         </button>
-        <button type="button" class="provider-detail__action provider-detail__action--ghost" (click)="toggleCapabilityForm()">
+        <button type="button" class="provider-detail__action provider-detail__action--ghost" (click)="closeCapabilityForm()">
           Cancel
         </button>
       </div>
@@ -252,7 +252,7 @@
           <td>{{ formatDate(c.updatedAt) }}</td>
           @if (canManage()) {
           <td class="provider-detail__row-actions">
-            <button type="button" class="provider-detail__link-button" (click)="toggleCapabilityForm(c)">Edit</button>
+            <button type="button" class="provider-detail__link-button" (click)="openCapabilityForm(c)">Edit</button>
             <button type="button" class="provider-detail__link-button provider-detail__link-button--danger" (click)="removeCapability(c)">Remove</button>
           </td>
           }
@@ -270,7 +270,7 @@
       <h2 class="provider-detail__section-title">Credentials</h2>
     </header>
 
-    @if (_credentials().length === 0) {
+    @if (credentials().length === 0) {
     <p class="provider-detail__empty">No credentials configured.</p>
     } @else {
     <div class="provider-detail__table-wrap">
@@ -284,7 +284,7 @@
         </tr>
         </thead>
         <tbody>
-        @for (c of _credentials(); track c.id) {
+        @for (c of credentials(); track c.id) {
         <tr>
           <td class="provider-detail__mono">{{ c.credentialKey }}</td>
           <td>{{ formatDate(c.createdAt) }}</td>
@@ -295,7 +295,7 @@
             </button>
           </td>
         </tr>
-        @if (_rotatingCredentialKey() === c.credentialKey) {
+        @if (rotatingKey() === c.credentialKey) {
         <tr>
           <td colspan="4">
             <form class="provider-detail__rotate-form" (submit)="$event.preventDefault(); rotateCredential()">
@@ -304,14 +304,14 @@
                 <input
                   class="provider-detail__input"
                   type="password"
-                  [value]="_rotateValue()"
-                  (input)="_rotateValue.set($any($event.target).value)"
+                  [value]="rotateValue()"
+                  (input)="onRotateValueInput($any($event.target).value)"
                   required
                 />
               </label>
               <div class="provider-detail__form-actions">
-                <button type="submit" class="provider-detail__action" [disabled]="_working()">
-                  {{ _working() ? 'Rotating…' : 'Rotate' }}
+                <button type="submit" class="provider-detail__action" [disabled]="actionBusy()">
+                  {{ actionBusy() ? 'Rotating…' : 'Rotate' }}
                 </button>
                 <button type="button" class="provider-detail__action provider-detail__action--ghost" (click)="cancelRotate()">
                   Cancel
@@ -335,8 +335,8 @@
           <input
             class="provider-detail__input"
             type="text"
-            [value]="_newCredentialKey()"
-            (input)="_newCredentialKey.set($any($event.target).value)"
+            [value]="newCredentialKey()"
+            (input)="onNewCredentialKeyInput($any($event.target).value)"
             placeholder="api_key"
             required
           />
@@ -346,15 +346,15 @@
           <input
             class="provider-detail__input"
             type="password"
-            [value]="_newCredentialValue()"
-            (input)="_newCredentialValue.set($any($event.target).value)"
+            [value]="newCredentialValue()"
+            (input)="onNewCredentialValueInput($any($event.target).value)"
             required
           />
         </label>
       </div>
       <div class="provider-detail__form-actions">
-        <button type="submit" class="provider-detail__action" [disabled]="_working()">
-          {{ _working() ? 'Saving…' : 'Add' }}
+        <button type="submit" class="provider-detail__action" [disabled]="actionBusy()">
+          {{ actionBusy() ? 'Saving…' : 'Add' }}
         </button>
       </div>
     </form>

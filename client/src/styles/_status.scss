@@ -45,3 +45,13 @@
   background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
   color: var(--color-text-muted);
 }
+
+.status--degraded {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.status--disabled {
+  color: var(--color-text-muted);
+  background: var(--color-subtle);
+}

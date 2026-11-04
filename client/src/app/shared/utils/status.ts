@@ -74,3 +74,16 @@ export function walletStatusClass(status: string): string {
       return '';
   }
 }
+
+export function providerStatusClass(status: string): string {
+  switch (status) {
+    case 'ACTIVE':
+      return 'status--active';
+    case 'DEGRADED':
+      return 'status--degraded';
+    case 'DISABLED':
+      return 'status--disabled';
+    default:
+      return '';
+  }
+}
