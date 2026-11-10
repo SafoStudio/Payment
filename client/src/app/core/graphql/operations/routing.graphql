@@ -1,0 +1,98 @@
+query RoutingRules($method: PaymentMethod, $currency: String, $enabled: Boolean, $limit: Int, $after: String) {
+  routingRules(method: $method, currency: $currency, enabled: $enabled, limit: $limit, after: $after) {
+    items {
+      id
+      method
+      currency
+      providerId
+      providerCode
+      providerName
+      priority
+      weight
+      enabled
+      createdAt
+      updatedAt
+    }
+    nextCursor
+    hasMore
+  }
+}
+
+query RoutingRule($id: ID!) {
+  routingRule(id: $id) {
+    id
+    method
+    currency
+    providerId
+    providerCode
+    providerName
+    priority
+    weight
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+query ResolveProvider($method: PaymentMethod!, $currency: String!, $amount: String!) {
+  resolveProvider(method: $method, currency: $currency, amount: $amount) {
+    ruleId
+    providerId
+    providerCode
+    providerName
+    adapterKey
+    priority
+  }
+}
+
+mutation CreateRoutingRule($input: CreateRoutingRuleInput!) {
+  createRoutingRule(input: $input) {
+    id
+    method
+    currency
+    providerId
+    providerCode
+    providerName
+    priority
+    weight
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateRoutingRule($id: ID!, $input: UpdateRoutingRuleInput!) {
+  updateRoutingRule(id: $id, input: $input) {
+    id
+    method
+    currency
+    providerId
+    providerCode
+    providerName
+    priority
+    weight
+    enabled
+    createdAt
+    updatedAt
+  }
+}
+
+mutation EnableRoutingRule($id: ID!) {
+  enableRoutingRule(id: $id) {
+    id
+    enabled
+    updatedAt
+  }
+}
+
+mutation DisableRoutingRule($id: ID!) {
+  disableRoutingRule(id: $id) {
+    id
+    enabled
+    updatedAt
+  }
+}
+
+mutation DeleteRoutingRule($id: ID!) {
+  deleteRoutingRule(id: $id)
+}

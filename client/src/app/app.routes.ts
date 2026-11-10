@@ -168,6 +168,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/routing',
+        canActivate: [permissionGuard(['routing:read:all', 'routing:manage:all'])],
+        loadComponent: () =>
+          import('@features/admin/routing/routing-page.component').then(
+            (m) => m.RoutingPageComponent,
+          ),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('@features/settings/settings-page.component').then(

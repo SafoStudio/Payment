@@ -1,0 +1,249 @@
+<section class="routing-page">
+  <header class="routing-page__header">
+    <h1 class="routing-page__title">Routing rules</h1>
+    @if (canManage()) {
+    <div class="routing-page__header-actions">
+      <button type="button" class="routing-page__action routing-page__action--ghost" (click)="toggleResolve()">
+        {{ resolveOpen() ? 'Close resolve' : 'Resolve dry-run' }}
+      </button>
+      <button type="button" class="routing-page__action" (click)="toggleCreate()">
+        {{ createOpen() ? 'Cancel' : 'Create rule' }}
+      </button>
+    </div>
+    }
+  </header>
+
+  @if (canManage() && resolveOpen()) {
+  <form class="routing-page__form" (submit)="$event.preventDefault(); resolve()">
+    <div class="routing-page__form-row">
+      <label class="routing-page__field">
+        <span class="routing-page__label">Method</span>
+        <select class="routing-page__input" [value]="resolveMethod()" (change)="onResolveMethodChange($any($event.target).value)">
+          @for (m of methodOptionsRequired; track m.value) {
+          <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Currency</span>
+        <input class="routing-page__input" type="text" maxlength="3" [value]="resolveCurrency()" (input)="onResolveCurrencyInput($any($event.target).value)" />
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Amount</span>
+        <input class="routing-page__input" type="text" inputmode="decimal" [value]="resolveAmount()" (input)="onResolveAmountInput($any($event.target).value)" />
+      </label>
+    </div>
+
+    @if (resolveError(); as err) {
+    <p class="routing-page__error">{{ err }}</p>
+    }
+
+    @if (resolved(); as r) {
+    <div class="routing-page__resolve-result">
+      <div><span class="routing-page__label">Provider</span> <strong>{{ r.providerCode }}</strong> — {{ r.providerName }}</div>
+      <div><span class="routing-page__label">Adapter</span> <span class="routing-page__mono">{{ r.adapterKey }}</span></div>
+      <div><span class="routing-page__label">Rule</span> <span class="routing-page__mono">{{ r.ruleId }}</span> (priority {{ r.priority }})</div>
+    </div>
+    }
+
+    <div class="routing-page__form-actions">
+      <button type="submit" class="routing-page__action" [disabled]="resolving()">
+        {{ resolving() ? 'Resolving…' : 'Resolve' }}
+      </button>
+    </div>
+  </form>
+  }
+
+  <div class="routing-page__filters">
+    <label class="routing-page__filter">
+      <span class="routing-page__label">Method</span>
+      <select class="routing-page__input" [value]="method()" (change)="onMethodChange($any($event.target).value)">
+        @for (o of methodOptions; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="routing-page__filter">
+      <span class="routing-page__label">Currency</span>
+      <input class="routing-page__input" type="text" maxlength="3" [value]="currency()" (change)="onCurrencyChange($any($event.target).value)" placeholder="EUR" />
+    </label>
+
+    <label class="routing-page__filter">
+      <span class="routing-page__label">Enabled</span>
+      <select class="routing-page__input" [value]="enabled()" (change)="onEnabledChange($any($event.target).value)">
+        @for (o of enabledOptions; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (createOpen()) {
+  <form class="routing-page__form" (submit)="$event.preventDefault(); create()">
+    <div class="routing-page__form-row">
+      <label class="routing-page__field">
+        <span class="routing-page__label">Method</span>
+        <select class="routing-page__input" [value]="newMethod()" (change)="onNewMethodChange($any($event.target).value)">
+          @for (m of methodOptionsRequired; track m.value) {
+          <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Currency</span>
+        <input class="routing-page__input" type="text" maxlength="3" [value]="newCurrency()" (input)="onNewCurrencyInput($any($event.target).value)" required />
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Provider</span>
+        <select
+          class="routing-page__input"
+          [value]="newProviderId()"
+          (change)="onNewProviderIdInput($any($event.target).value)"
+          [disabled]="providersLoading()"
+          required
+        >
+          @if (providerOptions().length === 0) {
+          <option value="">— no providers —</option>
+          }
+          @for (p of providerOptions(); track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="routing-page__form-row">
+      <label class="routing-page__field">
+        <span class="routing-page__label">Priority</span>
+        <input class="routing-page__input" type="number" min="0" [value]="newPriority()" (input)="onNewPriorityInput($any($event.target).value)" />
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Weight</span>
+        <input class="routing-page__input" type="number" min="1" [value]="newWeight()" (input)="onNewWeightInput($any($event.target).value)" />
+      </label>
+    </div>
+
+    @if (providersError(); as err) {
+    <p class="routing-page__error">Failed to load providers: {{ err }}</p>
+    }
+
+    @if (createError(); as err) {
+    <p class="routing-page__error">{{ err }}</p>
+    }
+
+    <div class="routing-page__form-actions">
+      <button type="submit" class="routing-page__action" [disabled]="creating()">
+        {{ creating() ? 'Creating…' : 'Create' }}
+      </button>
+      <button type="button" class="routing-page__action routing-page__action--ghost" (click)="toggleCreate()">Cancel</button>
+    </div>
+  </form>
+  }
+
+  @if (actionError(); as err) {
+  <p class="routing-page__error">{{ err }}</p>
+  }
+
+  @if (loading()) {
+  <p class="routing-page__loading">Loading…</p>
+  } @else if (error(); as err) {
+  <div class="routing-page__error-block">
+    <p class="routing-page__error">{{ err.message }}</p>
+    <button type="button" class="routing-page__action" (click)="reload()">Retry</button>
+  </div>
+  } @else if (isEmpty()) {
+  <p class="routing-page__empty">No routing rules yet.</p>
+  } @else {
+  <div class="routing-page__table-wrap">
+    <table class="routing-page__table">
+      <thead>
+      <tr>
+        <th>Method</th>
+        <th>Currency</th>
+        <th>Provider</th>
+        <th>Priority</th>
+        <th>Weight</th>
+        <th>Enabled</th>
+        <th>Created</th>
+        @if (canManage()) {
+        <th>Actions</th>
+        }
+      </tr>
+      </thead>
+      <tbody>
+      @for (r of items(); track r.id) {
+      <tr class="routing-page__row">
+        <td>{{ r.method }}</td>
+        <td>{{ r.currency }}</td>
+        <td>
+          @if (r.providerCode) {
+          <a class="routing-page__link" [routerLink]="['/providers', r.providerId]">{{ r.providerCode }}</a>
+          } @else {
+          <span class="routing-page__mono">{{ r.providerId }}</span>
+          }
+        </td>
+        <td>{{ r.priority }}</td>
+        <td>{{ r.weight }}</td>
+        <td>
+          <span [class]="'status ' + enabledClass(r.enabled)">{{ r.enabled ? 'ENABLED' : 'DISABLED' }}</span>
+        </td>
+        <td>{{ formatDate(r.createdAt) }}</td>
+        @if (canManage()) {
+        <td class="routing-page__row-actions">
+          <button type="button" class="routing-page__action routing-page__action--ghost" (click)="openEdit(r)">Edit</button>
+          <button type="button" class="routing-page__action routing-page__action--ghost" [disabled]="actionBusyId() === r.id" (click)="toggleEnabled(r)">
+            {{ r.enabled ? 'Disable' : 'Enable' }}
+          </button>
+          <button type="button" class="routing-page__action routing-page__action--danger" [disabled]="actionBusyId() === r.id" (click)="delete(r)">Delete</button>
+        </td>
+        }
+      </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (editingId()) {
+  <form class="routing-page__form" (submit)="$event.preventDefault(); saveEdit()">
+    <h2 class="routing-page__subtitle">Edit rule</h2>
+    <div class="routing-page__form-row">
+      <label class="routing-page__field">
+        <span class="routing-page__label">Priority</span>
+        <input class="routing-page__input" type="number" min="0" [value]="editPriority()" (input)="onEditPriorityInput($any($event.target).value)" />
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Weight</span>
+        <input class="routing-page__input" type="number" min="1" [value]="editWeight()" (input)="onEditWeightInput($any($event.target).value)" />
+      </label>
+      <label class="routing-page__field">
+        <span class="routing-page__label">Enabled</span>
+        <select class="routing-page__input" [value]="editEnabled() ? 'true' : 'false'" (change)="onEditEnabledChange($any($event.target).value)">
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+      </label>
+    </div>
+
+    @if (editError(); as err) {
+    <p class="routing-page__error">{{ err }}</p>
+    }
+
+    <div class="routing-page__form-actions">
+      <button type="submit" class="routing-page__action" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+      <button type="button" class="routing-page__action routing-page__action--ghost" (click)="cancelEdit()">Cancel</button>
+    </div>
+  </form>
+  }
+
+  @if (hasMore()) {
+  <div class="routing-page__more">
+    <button type="button" class="routing-page__action" [disabled]="loadingMore()" (click)="loadMore()">
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>

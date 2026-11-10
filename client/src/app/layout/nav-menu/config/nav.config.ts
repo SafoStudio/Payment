@@ -115,6 +115,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
         hideTitle: true,
         links: [
           { label: 'Fees & tariffs', link: '/admin/fees' },
+          { label: 'Routing rules', link: '/admin/routing' },
           { label: 'Audit log', link: '/admin/audit' },
         ],
       },
