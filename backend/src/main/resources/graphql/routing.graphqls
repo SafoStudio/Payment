@@ -1,0 +1,62 @@
+type RoutingRule {
+    id: ID!
+    method: PaymentMethod!
+    currency: String!
+    providerId: ID!
+    providerCode: String
+    providerName: String
+    priority: Int!
+    weight: Int!
+    enabled: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type RoutingRulePage {
+    items: [RoutingRule!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
+type ResolvedProvider {
+    ruleId: ID!
+    providerId: ID!
+    providerCode: String!
+    providerName: String!
+    adapterKey: String!
+    priority: Int!
+}
+
+input CreateRoutingRuleInput {
+    method: PaymentMethod!
+    currency: String!
+    providerId: ID!
+    priority: Int = 100
+    weight: Int = 100
+}
+
+input UpdateRoutingRuleInput {
+    priority: Int!
+    weight: Int!
+    enabled: Boolean!
+}
+
+extend type Query {
+    routingRules(
+        method: PaymentMethod
+        currency: String
+        enabled: Boolean
+        limit: Int = 20
+        after: String
+    ): RoutingRulePage!
+    routingRule(id: ID!): RoutingRule
+    resolveProvider(method: PaymentMethod!, currency: String!, amount: String!): ResolvedProvider!
+}
+
+extend type Mutation {
+    createRoutingRule(input: CreateRoutingRuleInput!): RoutingRule!
+    updateRoutingRule(id: ID!, input: UpdateRoutingRuleInput!): RoutingRule!
+    enableRoutingRule(id: ID!): RoutingRule!
+    disableRoutingRule(id: ID!): RoutingRule!
+    deleteRoutingRule(id: ID!): Boolean!
+}
