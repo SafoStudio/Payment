@@ -203,6 +203,35 @@ public class BusinessException extends RuntimeException {
             "Provider credential %s already exists for provider %s".formatted(credentialKey, providerId));
   }
 
+  public static BusinessException routingRuleNotFound(UUID id) {
+    return new BusinessException(ErrorCode.ROUTING_RULE_NOT_FOUND, "Routing rule not found: " + id);
+  }
+
+  public static BusinessException routingRuleAlreadyExists(String method, String currency, UUID providerId) {
+    return new BusinessException(ErrorCode.ROUTING_RULE_ALREADY_EXISTS,
+            "Routing rule %s/%s already exists for provider %s".formatted(method, currency, providerId));
+  }
+
+  public static BusinessException routingRuleDisabled(UUID id) {
+    return new BusinessException(ErrorCode.ROUTING_RULE_DISABLED,
+            "Routing rule is disabled: " + id);
+  }
+
+  public static BusinessException noProviderAvailable(String method, String currency, BigDecimal amount) {
+    return new BusinessException(ErrorCode.ROUTING_NO_PROVIDER_AVAILABLE,
+            "No provider available for %s/%s, amount %s".formatted(method, currency, amount));
+  }
+
+  public static BusinessException invalidPriority(int priority) {
+    return new BusinessException(ErrorCode.ROUTING_INVALID_PRIORITY,
+            "Priority must be non-negative: " + priority);
+  }
+
+  public static BusinessException invalidWeight(int weight) {
+    return new BusinessException(ErrorCode.ROUTING_INVALID_WEIGHT,
+            "Weight must be positive: " + weight);
+  }
+
   public static BusinessException validationError(String message) {
     return new BusinessException(ErrorCode.VALIDATION_ERROR, message);
   }

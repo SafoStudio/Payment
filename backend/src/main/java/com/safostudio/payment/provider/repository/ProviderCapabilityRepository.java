@@ -17,16 +17,24 @@ public interface ProviderCapabilityRepository extends CrudRepository<ProviderCap
 
   List<ProviderCapability> findByProviderId(UUID providerId);
 
-  Optional<ProviderCapability> findByProviderIdAndMethodAndCurrency(UUID providerId,
-                                                                    String method,
-                                                                    String currency);
+  Optional<ProviderCapability> findByProviderIdAndMethodAndCurrency(
+          UUID providerId, String method, String currency);
+
+  @Query("SELECT * FROM provider_capabilities WHERE provider_id IN (:providerIds)")
+  List<ProviderCapability> findByProviderIds(@Param("providerIds") Collection<UUID> providerIds);
 
   @Query("""
       SELECT * FROM provider_capabilities
       WHERE provider_id IN (:providerIds)
-      ORDER BY provider_id, method, currency
+        AND method = :method::text
+        AND currency = :currency::text
+        AND enabled = TRUE
       """)
-  List<ProviderCapability> findByProviderIds(@Param("providerIds") Collection<UUID> providerIds);
+  List<ProviderCapability> findByProviderIdsAndMethodAndCurrency(
+          @Param("providerIds") Collection<UUID> providerIds,
+          @Param("method") String method,
+          @Param("currency") String currency
+  );
 
   @Modifying
   @Query("DELETE FROM provider_capabilities WHERE provider_id = :providerId")
