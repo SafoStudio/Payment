@@ -18,12 +18,12 @@ public class RefundFailureHandler {
   private final RefundRepository refundRepository;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void markFailed(UUID refundId) {
+  public void markFailed(UUID refundId, UUID providerId, String failureReason) {
     refundRepository.findById(refundId).ifPresent(refund -> {
       try {
-        refund.fail();
+        refund.fail(providerId, failureReason);
         refundRepository.save(refund);
-        log.debug("Refund {} marked as FAILED", refundId);
+        log.debug("Refund {} marked as FAILED (reason={})", refundId, failureReason);
       } catch (BusinessException e) {
         log.warn("Could not mark refund {} as failed: {}", refundId, e.getMessage());
       }

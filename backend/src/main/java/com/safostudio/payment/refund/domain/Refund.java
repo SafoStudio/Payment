@@ -36,6 +36,12 @@ public class Refund {
 
   private UUID refundTransactionId;
 
+  private UUID providerId;
+
+  private String providerReference;
+
+  private String failureReason;
+
   private Instant createdAt;
 
   private Instant updatedAt;
@@ -64,21 +70,29 @@ public class Refund {
       throw BusinessException.invalidRefundStatus("process", status);
     }
     this.status = RefundStatus.PROCESSING;
+    this.updatedAt = Instant.now();
   }
 
-  public void complete(UUID refundTransactionId) {
+  public void complete(UUID refundTransactionId, UUID providerId, String providerReference) {
     if (status != RefundStatus.PROCESSING) {
       throw BusinessException.invalidRefundStatus("complete", status);
     }
     this.status = RefundStatus.COMPLETED;
     this.refundTransactionId = refundTransactionId;
+    this.providerId = providerId;
+    this.providerReference = providerReference;
+    this.failureReason = null;
+    this.updatedAt = Instant.now();
   }
 
-  public void fail() {
+  public void fail(UUID providerId, String failureReason) {
     if (status == RefundStatus.COMPLETED) {
       throw BusinessException.refundAlreadyCompleted();
     }
     this.status = RefundStatus.FAILED;
+    this.providerId = providerId;
+    this.failureReason = failureReason;
+    this.updatedAt = Instant.now();
   }
 
   public void reject() {
@@ -86,6 +100,7 @@ public class Refund {
       throw BusinessException.refundCannotReject(status);
     }
     this.status = RefundStatus.REJECTED;
+    this.updatedAt = Instant.now();
   }
 
   private static void validateAmount(BigDecimal amount) {

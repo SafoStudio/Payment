@@ -19,6 +19,9 @@ public class RefundResponse {
   String reason;
   UUID originalTransactionId;
   UUID refundTransactionId;
+  UUID providerId;
+  String providerReference;
+  String failureReason;
   Instant createdAt;
   Instant updatedAt;
 
@@ -32,6 +35,9 @@ public class RefundResponse {
             .reason(refund.getReason())
             .originalTransactionId(refund.getOriginalTransactionId())
             .refundTransactionId(refund.getRefundTransactionId())
+            .providerId(refund.getProviderId())
+            .providerReference(refund.getProviderReference())
+            .failureReason(refund.getFailureReason())
             .createdAt(refund.getCreatedAt())
             .updatedAt(refund.getUpdatedAt())
             .build();

@@ -7,6 +7,9 @@ type Refund {
     reason: String
     originalTransactionId: ID!
     refundTransactionId: ID
+    providerId: ID
+    providerReference: String
+    failureReason: String
     createdAt: String!
     updatedAt: String!
 }
