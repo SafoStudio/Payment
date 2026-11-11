@@ -47,6 +47,7 @@
       <tr>
         <th scope="col">Created</th>
         <th scope="col" class="payments__cell--right">Amount</th>
+        <th scope="col">Method</th>
         <th scope="col">Type</th>
         <th scope="col">Status</th>
         <th scope="col">Description</th>
@@ -67,6 +68,7 @@
         <td class="payments__cell--right">
           {{ formatAmount(payment.amount, payment.currency) }}
         </td>
+        <td>{{ payment.method }}</td>
         <td>{{ payment.type }}</td>
         <td>
                 <span

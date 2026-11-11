@@ -30,6 +30,10 @@
         </span>
     </div>
     <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Method</span>
+      <span class="payment-detail__value">{{ p.method }}</span>
+    </div>
+    <div class="payment-detail__summary-cell">
       <span class="payment-detail__label">Type</span>
       <span class="payment-detail__value">{{ typeLabel(p.type) }}</span>
     </div>
@@ -55,6 +59,30 @@
         {{ p.targetWalletId }}
       </a>
     </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Provider</span>
+      @if (p.providerId) {
+      <a class="payment-detail__link" [routerLink]="['/providers', p.providerId]">
+        {{ p.providerId }}
+      </a>
+      } @else {
+      <span class="payment-detail__value payment-detail__muted">—</span>
+      }
+    </div>
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Provider reference</span>
+      @if (p.providerReference) {
+      <span class="payment-detail__mono">{{ p.providerReference }}</span>
+      } @else {
+      <span class="payment-detail__value payment-detail__muted">—</span>
+      }
+    </div>
+    @if (p.failureReason) {
+    <div class="payment-detail__summary-cell">
+      <span class="payment-detail__label">Failure reason</span>
+      <span class="payment-detail__value payment-detail__failure">{{ p.failureReason }}</span>
+    </div>
+    }
     <div class="payment-detail__summary-cell">
       <span class="payment-detail__label">Transaction</span>
       @if (p.transactionId) {
@@ -199,6 +227,7 @@
           <th scope="col" class="payment-detail__cell--right">Amount</th>
           <th scope="col">Status</th>
           <th scope="col">Reason</th>
+          <th scope="col">Provider ref</th>
           <th scope="col">Refund tx</th>
           <th scope="col" class="payment-detail__cell--chevron" aria-label="Refund"></th>
         </tr>
@@ -222,6 +251,13 @@
           <td class="payment-detail__reason">
             @if (row.reason) {
             {{ row.reason }}
+            } @else {
+            <span class="payment-detail__muted">—</span>
+            }
+          </td>
+          <td>
+            @if (row.providerReference) {
+            <span class="payment-detail__mono">{{ row.providerReference }}</span>
             } @else {
             <span class="payment-detail__muted">—</span>
             }

@@ -9,10 +9,49 @@ query Refunds($filter: RefundFilterInput, $limit: Int, $after: String) {
       reason
       originalTransactionId
       refundTransactionId
+      providerId
+      providerReference
+      failureReason
       createdAt
       updatedAt
     }
     nextCursor
     hasMore
+  }
+}
+
+query RefundDetail($id: ID!) {
+  refund(id: $id) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    providerId
+    providerReference
+    failureReason
+    createdAt
+    updatedAt
+  }
+}
+
+mutation ProcessRefund($id: ID!) {
+  processRefund(id: $id) {
+    id
+    paymentId
+    amount
+    currency
+    status
+    reason
+    originalTransactionId
+    refundTransactionId
+    providerId
+    providerReference
+    failureReason
+    createdAt
+    updatedAt
   }
 }

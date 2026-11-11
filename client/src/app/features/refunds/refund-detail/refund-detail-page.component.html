@@ -52,6 +52,24 @@
       </a>
     </div>
     <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Provider</span>
+      @if (r.providerId) {
+      <a class="refund-detail__link" [routerLink]="['/providers', r.providerId]">
+        {{ r.providerId }}
+      </a>
+      } @else {
+      <span class="refund-detail__value refund-detail__muted">—</span>
+      }
+    </div>
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Provider reference</span>
+      @if (r.providerReference) {
+      <span class="refund-detail__mono">{{ r.providerReference }}</span>
+      } @else {
+      <span class="refund-detail__value refund-detail__muted">—</span>
+      }
+    </div>
+    <div class="refund-detail__summary-cell">
       <span class="refund-detail__label">Original transaction</span>
       @if (r.originalTransactionId) {
       <a
@@ -77,6 +95,12 @@
       <span class="refund-detail__value refund-detail__muted">—</span>
       }
     </div>
+    @if (r.failureReason) {
+    <div class="refund-detail__summary-cell">
+      <span class="refund-detail__label">Failure reason</span>
+      <span class="refund-detail__value refund-detail__failure">{{ r.failureReason }}</span>
+    </div>
+    }
     <div class="refund-detail__summary-cell refund-detail__summary-cell--wide">
       <span class="refund-detail__label">Reason</span>
       <span class="refund-detail__value refund-detail__reason">
