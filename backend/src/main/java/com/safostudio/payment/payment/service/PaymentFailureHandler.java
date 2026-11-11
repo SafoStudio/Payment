@@ -18,12 +18,12 @@ public class PaymentFailureHandler {
   private final PaymentRepository paymentRepository;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void markFailed(UUID paymentId) {
+  public void markFailed(UUID paymentId, UUID providerId, String failureReason) {
     paymentRepository.findById(paymentId).ifPresent(payment -> {
       try {
-        payment.fail();
+        payment.fail(providerId, failureReason);
         paymentRepository.save(payment);
-        log.debug("Payment {} marked as FAILED", paymentId);
+        log.debug("Payment {} marked as FAILED (reason={})", paymentId, failureReason);
       } catch (BusinessException e) {
         log.warn("Could not mark payment {} as failed: {}", paymentId, e.getMessage());
       }

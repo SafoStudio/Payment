@@ -10,7 +10,8 @@ public record ProviderRequest(
         String currency,
         String method,
         String config,
-        Map<String, String> metadata
+        Map<String, String> metadata,
+        Map<String, String> credentials
 ) {
   public ProviderRequest {
     if (paymentId == null) {
@@ -22,6 +23,10 @@ public record ProviderRequest(
     if (currency == null || !currency.matches("^[A-Z]{3}$")) {
       throw new IllegalArgumentException("currency must be ISO-4217");
     }
+    if (method == null || method.isBlank()) {
+      throw new IllegalArgumentException("method is required");
+    }
     metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
+    credentials = credentials == null ? Map.of() : Map.copyOf(credentials);
   }
 }
