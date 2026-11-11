@@ -15,6 +15,8 @@ public interface RefundRepository extends CrudRepository<Refund, UUID> {
 
   List<Refund> findByPaymentId(UUID paymentId);
 
+  boolean existsByProviderId(UUID providerId);
+
   @Query("""
       SELECT * FROM refunds
       WHERE (:status::text IS NULL OR status = :status::text)

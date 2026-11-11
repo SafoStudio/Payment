@@ -203,6 +203,11 @@ public class BusinessException extends RuntimeException {
             "Provider credential %s already exists for provider %s".formatted(credentialKey, providerId));
   }
 
+  public static BusinessException providerInUse(UUID providerId, String referencedBy) {
+    return new BusinessException(ErrorCode.PROVIDER_IN_USE,
+            "Provider %s is referenced by %s and cannot be deleted".formatted(providerId, referencedBy));
+  }
+
   public static BusinessException routingRuleNotFound(UUID id) {
     return new BusinessException(ErrorCode.ROUTING_RULE_NOT_FOUND, "Routing rule not found: " + id);
   }

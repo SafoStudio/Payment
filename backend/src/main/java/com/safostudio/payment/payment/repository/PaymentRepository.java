@@ -21,6 +21,8 @@ public interface PaymentRepository extends CrudRepository<Payment, UUID> {
   @Query("SELECT * FROM payments WHERE id = :id FOR UPDATE")
   Optional<Payment> findByIdForUpdate(@Param("id") UUID id);
 
+  boolean existsByProviderId(UUID providerId);
+
   @Query("""
       SELECT * FROM payments
       WHERE (:status::text IS NULL OR status = :status::text)

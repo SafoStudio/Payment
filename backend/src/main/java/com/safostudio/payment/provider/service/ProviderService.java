@@ -1,11 +1,13 @@
 package com.safostudio.payment.provider.service;
 
+import com.safostudio.payment.payment.repository.PaymentRepository;
 import com.safostudio.payment.provider.adapter.ProviderAdapterRegistry;
 import com.safostudio.payment.provider.domain.Provider;
 import com.safostudio.payment.provider.dto.CreateProviderRequest;
 import com.safostudio.payment.provider.dto.ProviderResponse;
 import com.safostudio.payment.provider.dto.UpdateProviderRequest;
 import com.safostudio.payment.provider.repository.ProviderRepository;
+import com.safostudio.payment.refund.repository.RefundRepository;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class ProviderService {
   private final ProviderCapabilityService capabilityService;
   private final ProviderCredentialService credentialService;
   private final ProviderAdapterRegistry adapterRegistry;
+  private final PaymentRepository paymentRepository;
+  private final RefundRepository refundRepository;
 
   @Transactional
   public ProviderResponse create(CreateProviderRequest request) {
@@ -84,6 +88,12 @@ public class ProviderService {
   public void delete(UUID id) {
     if (providerRepository.findById(id).isEmpty()) {
       throw BusinessException.providerNotFound(id);
+    }
+    if (paymentRepository.existsByProviderId(id)) {
+      throw BusinessException.providerInUse(id, "payments");
+    }
+    if (refundRepository.existsByProviderId(id)) {
+      throw BusinessException.providerInUse(id, "refunds");
     }
     capabilityService.deleteAll(id);
     credentialService.deleteAll(id);

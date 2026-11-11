@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -43,6 +45,25 @@ public class ProviderCredentialService {
     return credentialRepository.findByProviderId(providerId).stream()
             .map(ProviderCredentialKeyResponse::fromDomain)
             .toList();
+  }
+
+  /**
+   * Decrypted credential map for adapter invocation. Plaintext values are short-lived:
+   * they live only in the ProviderRequest passed to the adapter and must never be
+   * persisted, logged, or returned to clients.
+   */
+  @Transactional(readOnly = true)
+  public Map<String, String> getDecrypted(UUID providerId) {
+    List<ProviderCredential> credentials = credentialRepository.findByProviderId(providerId);
+    if (credentials.isEmpty()) {
+      return Map.of();
+    }
+    Map<String, String> decrypted = new LinkedHashMap<>(credentials.size());
+    for (ProviderCredential credential : credentials) {
+      decrypted.put(credential.getCredentialKey(),
+              cryptoService.decrypt(credential.getEncryptedValue()));
+    }
+    return Map.copyOf(decrypted);
   }
 
   @Transactional(readOnly = true)
