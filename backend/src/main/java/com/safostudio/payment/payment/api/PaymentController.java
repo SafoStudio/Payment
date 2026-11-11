@@ -34,6 +34,7 @@ public class PaymentController {
             .targetWalletId(input.targetWalletId())
             .amount(input.amount())
             .currency(input.currency())
+            .method(input.method() == null ? null : input.method().name())
             .type(PaymentType.PAYMENT)
             .idempotencyKey(input.idempotencyKey())
             .description(input.description())

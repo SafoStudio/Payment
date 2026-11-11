@@ -17,11 +17,15 @@ public class PaymentResponse {
   UUID targetWalletId;
   String amount;
   String currency;
+  String method;
   PaymentStatus status;
   PaymentType type;
   String idempotencyKey;
   String description;
   UUID transactionId;
+  UUID providerId;
+  String providerReference;
+  String failureReason;
   Instant createdAt;
   Instant updatedAt;
 
@@ -32,11 +36,15 @@ public class PaymentResponse {
             .targetWalletId(payment.getTargetWalletId())
             .amount(payment.getAmount().toPlainString())
             .currency(payment.getCurrency())
+            .method(payment.getMethod())
             .status(payment.getStatus())
             .type(payment.getType())
             .idempotencyKey(payment.getIdempotencyKey())
             .description(payment.getDescription())
             .transactionId(payment.getTransactionId())
+            .providerId(payment.getProviderId())
+            .providerReference(payment.getProviderReference())
+            .failureReason(payment.getFailureReason())
             .createdAt(payment.getCreatedAt())
             .updatedAt(payment.getUpdatedAt())
             .build();

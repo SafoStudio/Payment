@@ -1,6 +1,7 @@
 package com.safostudio.payment.payment.service;
 
 import com.safostudio.payment.ledger.idempotency.service.IdempotencyService;
+import com.safostudio.payment.payment.domain.NewPayment;
 import com.safostudio.payment.payment.domain.Payment;
 import com.safostudio.payment.payment.domain.PaymentType;
 import com.safostudio.payment.payment.dto.CreatePaymentRequest;
@@ -39,6 +40,7 @@ public class PaymentService {
             request.getTargetWalletId(),
             request.getAmount(),
             request.getCurrency(),
+            request.getMethod(),
             request.getType()
     ));
 
@@ -55,15 +57,16 @@ public class PaymentService {
       case PROCEED -> { /* continue */ }
     }
 
-    Payment payment = Payment.create(
+    Payment payment = Payment.create(new NewPayment(
             request.getWalletId(),
             request.getTargetWalletId(),
             request.getAmount(),
             request.getCurrency(),
+            request.getMethod(),
             request.getType(),
             request.getIdempotencyKey(),
             request.getDescription()
-    );
+    ));
 
     payment = paymentRepository.save(payment);
     payment = paymentProcessor.processNew(payment);
@@ -162,5 +165,6 @@ public class PaymentService {
                                     UUID targetWalletId,
                                     BigDecimal amount,
                                     String currency,
+                                    String method,
                                     PaymentType type) {}
 }

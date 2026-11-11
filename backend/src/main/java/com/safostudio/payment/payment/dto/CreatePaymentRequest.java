@@ -10,12 +10,13 @@ import java.util.UUID;
 @Value
 @Builder
 public class CreatePaymentRequest {
-    UUID walletId;
-    UUID targetWalletId;
-    BigDecimal amount;
-    String currency;
-    PaymentType type;
-    String idempotencyKey;
-    String description;
-    UUID userId; // for audit
+  UUID walletId;
+  UUID targetWalletId;
+  BigDecimal amount;
+  String currency;
+  String method;
+  PaymentType type;
+  String idempotencyKey;
+  String description;
+  UUID userId;
 }
