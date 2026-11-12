@@ -84,6 +84,10 @@ logging:
 payment:
   outbox:
     poll-interval: PT2S
+  saga:
+    timeout: PT2M
+    poll-interval: PT30S
+    batch-size: 50
   idempotency:
     ttl: 24h
     cleanup-interval: PT1H
