@@ -1,0 +1,48 @@
+type Notification {
+    id: ID!
+    walletId: ID
+    userId: ID
+    type: NotificationType!
+    title: String!
+    content: String!
+    status: NotificationStatus!
+    retryCount: Int!
+    scheduledFor: String
+    sentAt: String
+    createdAt: String!
+    updatedAt: String!
+}
+
+type NotificationPage {
+    items: [Notification!]!
+    nextCursor: String
+    hasMore: Boolean!
+}
+
+enum NotificationType {
+    PAYMENT_RECEIVED
+    PAYMENT_SENT
+    PAYMENT_FAILED
+    WALLET_BLOCKED
+    WALLET_UNBLOCKED
+    LOW_BALANCE
+    REFUND_PROCESSED
+    REFUND_FAILED
+}
+
+enum NotificationStatus {
+    PENDING
+    SENT
+    FAILED
+    CANCELLED
+}
+
+extend type Query {
+    notifications(
+        status: NotificationStatus
+        type: NotificationType
+        limit: Int = 20
+        after: String
+    ): NotificationPage!
+    notification(id: ID!): Notification
+}

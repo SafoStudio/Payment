@@ -17,91 +17,87 @@ import java.util.UUID;
 @Table("notifications")
 public class Notification {
 
-    @Id
-    private UUID id;
+  @Id
+  private UUID id;
 
-    private UUID walletId;
+  private UUID walletId;
 
-    private UUID userId;
+  private UUID userId;
 
-    private NotificationType type;
+  private NotificationType type;
 
-    private String title;
+  private String title;
 
-    private String content;
+  private String content;
 
-    private NotificationStatus status;
+  private NotificationStatus status;
 
-    private Integer retryCount;
+  private Integer retryCount;
 
-    private Instant scheduledFor;
+  private Instant scheduledFor;
 
-    private Instant sentAt;
+  private Instant sentAt;
 
-    private Instant createdAt;
+  private UUID outboxEventId;
 
-    private Instant updatedAt;
+  private Instant createdAt;
 
-    public enum NotificationType {
-        PAYMENT_RECEIVED,
-        PAYMENT_SENT,
-        PAYMENT_FAILED,
-        WALLET_BLOCKED,
-        WALLET_UNBLOCKED,
-        LOW_BALANCE,
-        REFUND_PROCESSED
-    }
+  private Instant updatedAt;
 
-    public enum NotificationStatus {
-        PENDING,
-        SENT,
-        FAILED,
-        CANCELLED
-    }
+  public enum NotificationType {
+    PAYMENT_RECEIVED,
+    PAYMENT_SENT,
+    PAYMENT_FAILED,
+    WALLET_BLOCKED,
+    WALLET_UNBLOCKED,
+    LOW_BALANCE,
+    REFUND_PROCESSED,
+    REFUND_FAILED
+  }
 
-    /**
-     * Creates a new notification
-     */
-    public static Notification create(UUID walletId, UUID userId,
-                                      NotificationType type,
-                                      String title, String content) {
-        return Notification.builder()
-                .id(null)
-                .walletId(walletId)
-                .userId(userId)
-                .type(type)
-                .title(title)
-                .content(content)
-                .status(NotificationStatus.PENDING)
-                .retryCount(0)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-    }
+  public enum NotificationStatus {
+    PENDING,
+    SENT,
+    FAILED,
+    CANCELLED
+  }
 
-    /**
-     * Marks notification as sent
-     */
-    public void markAsSent() {
-        this.status = NotificationStatus.SENT;
-        this.sentAt = Instant.now();
-    }
+  public static Notification create(UUID walletId, UUID userId,
+                                    NotificationType type,
+                                    String title, String content,
+                                    UUID outboxEventId) {
+    return Notification.builder()
+            .id(null)
+            .walletId(walletId)
+            .userId(userId)
+            .type(type)
+            .title(title)
+            .content(content)
+            .status(NotificationStatus.PENDING)
+            .retryCount(0)
+            .outboxEventId(outboxEventId)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+  }
 
-    /**
-     * Marks notification as failed
-     */
-    public void markAsFailed() {
-        this.status = NotificationStatus.FAILED;
-    }
+  public void markAsSent() {
+    this.status = NotificationStatus.SENT;
+    this.sentAt = Instant.now();
+    this.updatedAt = Instant.now();
+  }
 
-    /**
-     * Increments retry count
-     */
-    public void incrementRetry() {
-        this.retryCount++;
-    }
+  public void markAsFailed() {
+    this.status = NotificationStatus.FAILED;
+    this.updatedAt = Instant.now();
+  }
 
-    public boolean shouldRetry(int maxRetries) {
-        return retryCount < maxRetries && status == NotificationStatus.FAILED;
-    }
+  public void incrementRetry() {
+    this.retryCount++;
+    this.updatedAt = Instant.now();
+  }
+
+  public boolean shouldRetry(int maxRetries) {
+    return retryCount < maxRetries && status == NotificationStatus.FAILED;
+  }
 }
