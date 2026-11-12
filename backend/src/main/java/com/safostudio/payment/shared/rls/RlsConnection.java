@@ -26,6 +26,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Connection wrapper that sets the RLS context (app.current_user_id, app.role)
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  * Fail-closed: missing userId/roles are passed as SQL NULL, so RLS policies
  * match no rows instead of failing on an invalid empty uuid.
  */
+@Slf4j
 final class RlsConnection implements Connection {
 
   private final Connection delegate;
@@ -69,6 +71,9 @@ final class RlsConnection implements Connection {
               .collect(Collectors.joining(","));
     }
 
+    log.debug("RLS ensureRlsContext: userId={}, rolesCsv={}, contextResolved={}",
+            userId, rolesCsv, contextResolved);
+
     if (contextResolved
             && Objects.equals(userId, cachedUserId)
             && Objects.equals(rolesCsv, cachedRoles)) {
@@ -86,9 +91,11 @@ final class RlsConnection implements Connection {
     cachedUserId = userId;
     cachedRoles = rolesCsv;
     contextResolved = true;
+    log.debug("RLS set_config applied: userId={}, role={}", userId, rolesCsv);
   }
 
   private void resetContextCache() {
+    log.debug("RLS resetContextCache (contextResolved was {})", contextResolved);
     cachedUserId = null;
     cachedRoles = "";
     contextResolved = false;
@@ -180,6 +187,7 @@ final class RlsConnection implements Connection {
 
   @Override
   public void commit() throws SQLException {
+    log.debug("RLS commit");
     try {
       delegate.commit();
     } finally {
@@ -189,6 +197,7 @@ final class RlsConnection implements Connection {
 
   @Override
   public void rollback() throws SQLException {
+    log.debug("RLS rollback");
     try {
       delegate.rollback();
     } finally {
@@ -198,6 +207,7 @@ final class RlsConnection implements Connection {
 
   @Override
   public void rollback(Savepoint savepoint) throws SQLException {
+    log.debug("RLS rollback(savepoint={})", savepoint);
     try {
       delegate.rollback(savepoint);
     } finally {

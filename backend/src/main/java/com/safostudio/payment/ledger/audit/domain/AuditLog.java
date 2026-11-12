@@ -38,12 +38,15 @@ public class AuditLog {
 
   private String userAgent;
 
+  private UUID outboxEventId;
+
   private Instant createdAt;
 
   public static AuditLog create(String entityType, UUID recordId,
                                 String action, UUID userId,
                                 String oldData, String newData,
-                                String ipAddress, String userAgent) {
+                                String ipAddress, String userAgent,
+                                UUID outboxEventId) {
     return AuditLog.builder()
             .id(null)
             .entityType(entityType)
@@ -54,6 +57,7 @@ public class AuditLog {
             .newData(newData)
             .ipAddress(ipAddress)
             .userAgent(userAgent)
+            .outboxEventId(outboxEventId)
             .createdAt(Instant.now())
             .build();
   }

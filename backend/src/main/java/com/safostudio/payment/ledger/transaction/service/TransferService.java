@@ -289,7 +289,8 @@ public class TransferService {
               previous.toPlainString(),
               wallet.getBalance().toPlainString(),
               request.getIpAddress(),
-              request.getUserAgent()
+              request.getUserAgent(),
+              null
       ));
 
       TransactionResponse response =
