@@ -237,6 +237,10 @@ public class BusinessException extends RuntimeException {
             "Weight must be positive: " + weight);
   }
 
+  public static BusinessException notificationNotFound(UUID id) {
+    return new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND, "Notification not found: " + id);
+  }
+
   public static BusinessException validationError(String message) {
     return new BusinessException(ErrorCode.VALIDATION_ERROR, message);
   }
