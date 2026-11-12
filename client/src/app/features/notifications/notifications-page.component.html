@@ -1,0 +1,80 @@
+<section class="notifications-page">
+  <header class="notifications-page__header">
+    <h1 class="notifications-page__title">Notifications</h1>
+    <div class="notifications-page__controls">
+      <label class="notifications-page__filter">
+        <span class="notifications-page__filter-label">Status</span>
+        <select
+          class="notifications-page__filter-select"
+          [value]="status()"
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="notifications-page__filter">
+        <span class="notifications-page__filter-label">Type</span>
+        <select
+          class="notifications-page__filter-select"
+          [value]="type()"
+          (change)="onTypeChange($any($event.target).value)"
+        >
+          @for (opt of typeOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="notifications-page__refresh"
+        (click)="reload()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+  <div class="notifications-page__error" role="alert">
+    <p>{{ err.message }}</p>
+    <button type="button" class="notifications-page__retry" (click)="reload()">Try again</button>
+  </div>
+  } @else if (loading()) {
+  <div class="notifications-page__loading">Loading notifications…</div>
+  } @else if (isEmpty()) {
+  <div class="notifications-page__empty"><p>No notifications found.</p></div>
+  } @else {
+  <ul class="notifications-page__list">
+    @for (n of items(); track n.id) {
+    <li class="notifications-page__item">
+      <div class="notifications-page__item-header">
+        <span class="notifications-page__item-title">{{ n.title }}</span>
+        <span class="notifications-page__status" [class]="statusClass(n.status)">{{ n.status }}</span>
+      </div>
+      <p class="notifications-page__item-content">{{ n.content }}</p>
+      <div class="notifications-page__item-meta">
+        <span>{{ n.type }}</span>
+        <span>·</span>
+        <span>{{ formatDate(n.createdAt) }}</span>
+      </div>
+    </li>
+    }
+  </ul>
+
+  @if (hasMore()) {
+  <div class="notifications-page__more">
+    <button
+      type="button"
+      class="notifications-page__load-more"
+      (click)="loadMore()"
+      [disabled]="loadingMore()"
+    >
+      {{ loadingMore() ? 'Loading…' : 'Load more' }}
+    </button>
+  </div>
+  }
+  }
+</section>

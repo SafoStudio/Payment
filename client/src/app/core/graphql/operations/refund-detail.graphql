@@ -8,6 +8,9 @@ query RefundDetail($id: ID!) {
     reason
     originalTransactionId
     refundTransactionId
+    providerId
+    providerReference
+    failureReason
     createdAt
     updatedAt
   }
@@ -23,6 +26,9 @@ mutation ProcessRefund($id: ID!) {
     reason
     originalTransactionId
     refundTransactionId
+    providerId
+    providerReference
+    failureReason
     createdAt
     updatedAt
   }

@@ -28,6 +28,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     link: '/dashboard',
   },
   {
+    id: 'notifications',
+    label: 'Notifications',
+    icon: '🔔',
+    permissions: ['notification:read:own'],
+    link: '/notifications',
+  },
+  {
     id: 'payments',
     label: 'Payments',
     icon: '⇄',

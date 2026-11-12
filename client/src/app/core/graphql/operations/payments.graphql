@@ -19,45 +19,6 @@ query Payments($filter: PaymentFilterInput, $limit: Int, $after: String) {
   }
 }
 
-query PaymentDetail($id: ID!) {
-  payment(id: $id) {
-    id
-    walletId
-    targetWalletId
-    amount
-    currency
-    method
-    status
-    type
-    idempotencyKey
-    description
-    transactionId
-    providerId
-    providerReference
-    failureReason
-    createdAt
-    updatedAt
-  }
-}
-
-query PaymentRefunds($paymentId: ID!) {
-  refundsByPayment(paymentId: $paymentId) {
-    id
-    paymentId
-    amount
-    currency
-    status
-    reason
-    originalTransactionId
-    refundTransactionId
-    providerId
-    providerReference
-    failureReason
-    createdAt
-    updatedAt
-  }
-}
-
 mutation CreatePayment($input: CreatePaymentInput!) {
   createPayment(input: $input) {
     id
@@ -72,25 +33,6 @@ mutation CreatePayment($input: CreatePaymentInput!) {
     providerReference
     failureReason
     createdAt
-    updatedAt
-  }
-}
-
-mutation ProcessPayment($id: ID!) {
-  processPayment(id: $id) {
-    id
-    status
-    providerId
-    providerReference
-    failureReason
-    updatedAt
-  }
-}
-
-mutation CancelPayment($id: ID!) {
-  cancelPayment(id: $id) {
-    id
-    status
     updatedAt
   }
 }

@@ -169,10 +169,19 @@ export const routes: Routes = [
       },
       {
         path: 'admin/routing',
-        canActivate: [permissionGuard(['routing:read:all', 'routing:manage:all'])],
+        canActivate: [
+          permissionGuard(['routing:read:all', 'routing:manage:all']),
+        ],
         loadComponent: () =>
           import('@features/admin/routing/routing-page.component').then(
             (m) => m.RoutingPageComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('@features/notifications/notifications-page.component').then(
+            (m) => m.NotificationsPageComponent,
           ),
       },
       {

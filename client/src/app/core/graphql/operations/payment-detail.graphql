@@ -5,11 +5,15 @@ query PaymentDetail($id: ID!) {
     targetWalletId
     amount
     currency
+    method
     status
     type
     idempotencyKey
     description
     transactionId
+    providerId
+    providerReference
+    failureReason
     createdAt
     updatedAt
   }
@@ -25,6 +29,9 @@ query PaymentRefunds($paymentId: ID!) {
     reason
     originalTransactionId
     refundTransactionId
+    providerId
+    providerReference
+    failureReason
     createdAt
     updatedAt
   }
@@ -34,6 +41,9 @@ mutation ProcessPayment($id: ID!) {
   processPayment(id: $id) {
     id
     status
+    providerId
+    providerReference
+    failureReason
     updatedAt
   }
 }
@@ -42,21 +52,6 @@ mutation CancelPayment($id: ID!) {
   cancelPayment(id: $id) {
     id
     status
-    updatedAt
-  }
-}
-
-mutation CreateRefund($input: CreateRefundInput!) {
-  createRefund(input: $input) {
-    id
-    paymentId
-    amount
-    currency
-    status
-    reason
-    originalTransactionId
-    refundTransactionId
-    createdAt
     updatedAt
   }
 }

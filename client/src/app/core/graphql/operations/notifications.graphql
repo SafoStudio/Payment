@@ -1,0 +1,37 @@
+query Notifications($status: NotificationStatus, $type: NotificationType, $limit: Int, $after: String) {
+  notifications(status: $status, type: $type, limit: $limit, after: $after) {
+    items {
+      id
+      walletId
+      userId
+      type
+      title
+      content
+      status
+      retryCount
+      scheduledFor
+      sentAt
+      createdAt
+      updatedAt
+    }
+    nextCursor
+    hasMore
+  }
+}
+
+query NotificationDetail($id: ID!) {
+  notification(id: $id) {
+    id
+    walletId
+    userId
+    type
+    title
+    content
+    status
+    retryCount
+    scheduledFor
+    sentAt
+    createdAt
+    updatedAt
+  }
+}
