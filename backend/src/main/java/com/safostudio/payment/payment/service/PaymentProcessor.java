@@ -1,5 +1,6 @@
 package com.safostudio.payment.payment.service;
 
+import com.safostudio.payment.ledger.outbox.service.OutboxService;
 import com.safostudio.payment.ledger.transaction.domain.TransactionReference;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,8 +41,10 @@ public class PaymentProcessor {
   private final ProviderAdapterRegistry adapterRegistry;
   private final ProviderCredentialService credentialService;
   private final ProviderRepository providerRepository;
+  private final OutboxService outboxService;
+  private final PaymentFailureHandler paymentFailureHandler;
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public Payment processNew(Payment payment) {
     payment.markAsProcessing();
     paymentRepository.save(payment);
@@ -62,14 +66,12 @@ public class PaymentProcessor {
       resolved = providerRoutingService.resolve(payment.getMethod(), payment.getCurrency(), payment.getAmount());
     } catch (BusinessException e) {
       log.warn("No provider for payment {}: {}", payment.getId(), e.getMessage());
-      payment.fail(null, NO_PROVIDER);
-      return paymentRepository.save(payment);
+      return failAndPersist(payment, null, NO_PROVIDER);
     }
 
     Provider provider = providerRepository.findById(resolved.providerId()).orElse(null);
     if (provider == null || !provider.isActive()) {
-      payment.fail(resolved.providerId(), NO_PROVIDER);
-      return paymentRepository.save(payment);
+      return failAndPersist(payment, resolved.providerId(), NO_PROVIDER);
     }
 
     ProviderAdapter adapter = adapterRegistry.get(provider.getAdapterKey());
@@ -88,16 +90,14 @@ public class PaymentProcessor {
       result = adapter.authorize(request);
     } catch (Exception e) {
       log.error("Adapter {} failed for payment {}", provider.getAdapterKey(), payment.getId(), e);
-      payment.fail(provider.getId(), INTERNAL_ERROR);
-      return paymentRepository.save(payment);
+      return failAndPersist(payment, provider.getId(), INTERNAL_ERROR);
     }
 
     if (!result.isApproved()) {
       String reason = result.declineCode() != null ? result.declineCode() : "PROVIDER_ERROR";
       log.info("Payment {} not approved by provider {}: status={}, reason={}",
               payment.getId(), provider.getCode(), result.status(), reason);
-      payment.fail(provider.getId(), reason);
-      return paymentRepository.save(payment);
+      return failAndPersist(payment, provider.getId(), reason);
     }
 
     try {
@@ -105,10 +105,28 @@ public class PaymentProcessor {
     } catch (BusinessException e) {
       log.error("Ledger failed after provider approval for payment {}: {}",
               payment.getId(), e.getMessage());
-      payment.fail(provider.getId(), LEDGER_FAILED);
-      paymentRepository.save(payment);
+      paymentFailureHandler.markFailed(payment.getId(), provider.getId(), LEDGER_FAILED);
       throw e;
     }
+  }
+
+  private Payment failAndPersist(Payment payment, UUID providerId, String failureReason) {
+    payment.fail(providerId, failureReason);
+    Payment saved = paymentRepository.save(payment);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("paymentId", saved.getId().toString());
+    payload.put("amount", saved.getAmount().toPlainString());
+    payload.put("currency", saved.getCurrency());
+    payload.put("method", saved.getMethod());
+    payload.put("targetWalletId", saved.getTargetWalletId().toString());
+    payload.put("providerId", providerId != null ? providerId.toString() : null);
+    payload.put("providerReference", null);
+    payload.put("failureReason", failureReason);
+    payload.put("transactionId", null);
+
+    outboxService.append("Payment", saved.getId(), "PaymentFailed", payload);
+    return saved;
   }
 
   private Payment executeTransfer(Payment payment, Provider provider, String providerReference) {
@@ -126,6 +144,20 @@ public class PaymentProcessor {
             TransactionReference.payment(payment.getId())
     );
     payment.succeed(transaction.getId(), provider.getId(), providerReference);
-    return paymentRepository.save(payment);
+    Payment saved = paymentRepository.save(payment);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("paymentId", saved.getId().toString());
+    payload.put("amount", saved.getAmount().toPlainString());
+    payload.put("currency", saved.getCurrency());
+    payload.put("method", saved.getMethod());
+    payload.put("targetWalletId", saved.getTargetWalletId().toString());
+    payload.put("providerId", provider.getId().toString());
+    payload.put("providerReference", providerReference);
+    payload.put("failureReason", null);
+    payload.put("transactionId", transaction.getId().toString());
+
+    outboxService.append("Payment", saved.getId(), "PaymentSucceeded", payload);
+    return saved;
   }
 }

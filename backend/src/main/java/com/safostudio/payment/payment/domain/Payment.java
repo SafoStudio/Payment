@@ -48,8 +48,6 @@ public class Payment {
 
   private String failureReason;
 
-  private String metadata;
-
   private Instant createdAt;
 
   private Instant updatedAt;

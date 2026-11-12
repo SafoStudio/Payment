@@ -1,5 +1,6 @@
 package com.safostudio.payment.refund.service;
 
+import com.safostudio.payment.ledger.outbox.service.OutboxService;
 import com.safostudio.payment.ledger.transaction.domain.TransactionReference;
 import com.safostudio.payment.ledger.transaction.dto.TransferRequest;
 import com.safostudio.payment.ledger.transaction.service.TransferService;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,8 +41,10 @@ public class RefundProcessor {
   private final ProviderRepository providerRepository;
   private final ProviderAdapterRegistry adapterRegistry;
   private final ProviderCredentialService credentialService;
+  private final OutboxService outboxService;
+  private final RefundFailureHandler refundFailureHandler;
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public Refund process(Refund refund) {
     UUID paymentId = refund.getPaymentId();
 
@@ -53,15 +57,13 @@ public class RefundProcessor {
 
     if (payment.getProviderId() == null) {
       refund.process();
-      refund.fail(null, NO_PROVIDER);
-      return refundRepository.save(refund);
+      return failAndPersist(refund, payment.getTargetWalletId(), null, NO_PROVIDER);
     }
 
     Provider provider = providerRepository.findById(payment.getProviderId()).orElse(null);
     if (provider == null || !provider.isActive()) {
       refund.process();
-      refund.fail(payment.getProviderId(), NO_PROVIDER);
-      return refundRepository.save(refund);
+      return failAndPersist(refund, payment.getTargetWalletId(), payment.getProviderId(), NO_PROVIDER);
     }
 
     refund.process();
@@ -83,16 +85,14 @@ public class RefundProcessor {
       result = adapter.refund(request);
     } catch (Exception e) {
       log.error("Adapter {} failed for refund {}", provider.getAdapterKey(), refund.getId(), e);
-      refund.fail(provider.getId(), INTERNAL_ERROR);
-      return refundRepository.save(refund);
+      return failAndPersist(refund, payment.getTargetWalletId(), provider.getId(), INTERNAL_ERROR);
     }
 
     if (!result.isApproved()) {
       String reason = result.declineCode() != null ? result.declineCode() : "PROVIDER_ERROR";
       log.info("Refund {} not approved by provider {}: status={}, reason={}",
               refund.getId(), provider.getCode(), result.status(), reason);
-      refund.fail(provider.getId(), reason);
-      return refundRepository.save(refund);
+      return failAndPersist(refund, payment.getTargetWalletId(), provider.getId(), reason);
     }
 
     try {
@@ -115,14 +115,46 @@ public class RefundProcessor {
       payment.refund();
       paymentRepository.save(payment);
 
-      return refundRepository.save(refund);
+      Refund saved = refundRepository.save(refund);
+
+      Map<String, Object> payload = new HashMap<>();
+      payload.put("refundId", saved.getId().toString());
+      payload.put("paymentId", saved.getPaymentId().toString());
+      payload.put("amount", saved.getAmount().toPlainString());
+      payload.put("currency", saved.getCurrency());
+      payload.put("targetWalletId", payment.getTargetWalletId().toString());
+      payload.put("providerId", provider.getId().toString());
+      payload.put("providerReference", result.providerReference());
+      payload.put("failureReason", null);
+      payload.put("refundTransactionId", transaction.getId().toString());
+
+      outboxService.append("Refund", saved.getId(), "RefundCompleted", payload);
+      return saved;
 
     } catch (BusinessException e) {
       log.error("Ledger failed after provider approval for refund {}: {}",
               refund.getId(), e.getMessage());
-      refund.fail(provider.getId(), LEDGER_FAILED);
-      refundRepository.save(refund);
+      refundFailureHandler.markFailed(refund.getId(), provider.getId(), LEDGER_FAILED, payment.getTargetWalletId());
       throw e;
     }
+  }
+
+  private Refund failAndPersist(Refund refund, UUID targetWalletId, UUID providerId, String failureReason) {
+    refund.fail(providerId, failureReason);
+    Refund saved = refundRepository.save(refund);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("refundId", saved.getId().toString());
+    payload.put("paymentId", saved.getPaymentId().toString());
+    payload.put("amount", saved.getAmount().toPlainString());
+    payload.put("currency", saved.getCurrency());
+    payload.put("targetWalletId", targetWalletId != null ? targetWalletId.toString() : null);
+    payload.put("providerId", providerId != null ? providerId.toString() : null);
+    payload.put("providerReference", null);
+    payload.put("failureReason", failureReason);
+    payload.put("refundTransactionId", null);
+
+    outboxService.append("Refund", saved.getId(), "RefundFailed", payload);
+    return saved;
   }
 }
