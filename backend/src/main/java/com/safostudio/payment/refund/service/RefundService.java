@@ -6,6 +6,7 @@ import com.safostudio.payment.refund.domain.Refund;
 import com.safostudio.payment.refund.dto.CreateRefundRequest;
 import com.safostudio.payment.refund.dto.RefundResponse;
 import com.safostudio.payment.refund.repository.RefundRepository;
+import com.safostudio.payment.saga.service.RefundSagaService;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class RefundService {
   private final RefundRepository refundRepository;
   private final PaymentRepository paymentRepository;
   private final RefundProcessor refundProcessor;
+  private final RefundSagaService refundSagaService;
   private final IdempotencyService idempotencyService;
 
   @Transactional
@@ -67,6 +69,7 @@ public class RefundService {
     );
 
     refund = refundRepository.save(refund);
+    refundSagaService.startRefundSaga(refund);
 
     RefundResponse response = RefundResponse.from(refund);
     idempotencyService.complete(OPERATION, key, refund.getId().toString());
@@ -75,11 +78,7 @@ public class RefundService {
 
   @Transactional
   public RefundResponse processRefund(UUID refundId) {
-    Refund refund = refundRepository.findById(refundId)
-            .orElseThrow(() -> BusinessException.refundNotFound(refundId));
-
-    refund = refundProcessor.process(refund);
-
+    Refund refund = refundSagaService.runRefundSaga(refundId);
     return RefundResponse.from(refund);
   }
 

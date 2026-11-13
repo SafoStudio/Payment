@@ -8,7 +8,7 @@ import com.safostudio.payment.payment.dto.CreatePaymentRequest;
 import com.safostudio.payment.payment.dto.PaymentPageResponse;
 import com.safostudio.payment.payment.dto.PaymentResponse;
 import com.safostudio.payment.payment.repository.PaymentRepository;
-import com.safostudio.payment.payment.saga.service.SagaService;
+import com.safostudio.payment.saga.service.PaymentSagaService;
 import com.safostudio.payment.shared.cursor.CursorCodec;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class PaymentService {
   private static final int DEFAULT_LIMIT = 20;
 
   private final PaymentRepository paymentRepository;
-  private final SagaService sagaService;
+  private final PaymentSagaService paymentSagaService;
   private final IdempotencyService idempotencyService;
 
   @Transactional
@@ -70,7 +70,7 @@ public class PaymentService {
     ));
 
     payment = paymentRepository.save(payment);
-    payment = sagaService.runPaymentSaga(payment);
+    payment = paymentSagaService.runPaymentSaga(payment);
 
     PaymentResponse response = PaymentResponse.from(payment);
     idempotencyService.complete(OPERATION, key, payment.getId());
@@ -78,7 +78,7 @@ public class PaymentService {
   }
 
   public PaymentResponse processPayment(UUID paymentId) {
-    Payment payment = sagaService.resumePaymentSaga(paymentId);
+    Payment payment = paymentSagaService.resumePaymentSaga(paymentId);
     return PaymentResponse.from(payment);
   }
 

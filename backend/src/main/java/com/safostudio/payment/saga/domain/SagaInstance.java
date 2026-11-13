@@ -1,4 +1,4 @@
-package com.safostudio.payment.payment.saga.domain;
+package com.safostudio.payment.saga.domain;
 
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.AllArgsConstructor;
@@ -30,7 +30,7 @@ import java.util.UUID;
  * <p>
  * currentStep reflects the last step actually reached. It is not advanced
  * speculatively: a step is marked reached only after its outcome is known.
- * markLedgerReached is called by SagaService on payment SUCCEEDED (ledger is
+ * markLedgerReached is called by PaymentSagaService on payment SUCCEEDED (ledger is
  * the only path to SUCCEEDED in PaymentProcessor).
  */
 @Data
@@ -105,7 +105,7 @@ public class SagaInstance {
 
   /**
    * Marks LEDGER reached without advancing to a next step. Called from
-   * SagaService on payment SUCCEEDED — ledger is the only path to SUCCEEDED
+   * PaymentSagaService on payment SUCCEEDED — ledger is the only path to SUCCEEDED
    * in PaymentProcessor, so the fact of SUCCEEDED proves ledger was reached.
    * Keeps attempts untouched (this is not a retry).
    */

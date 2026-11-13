@@ -1,11 +1,11 @@
-package com.safostudio.payment.payment.saga.service;
+package com.safostudio.payment.saga.service;
 
 import com.safostudio.payment.payment.domain.Payment;
 import com.safostudio.payment.payment.repository.PaymentRepository;
-import com.safostudio.payment.payment.saga.domain.SagaInstance;
-import com.safostudio.payment.payment.saga.domain.SagaStatus;
-import com.safostudio.payment.payment.saga.domain.SagaStep;
-import com.safostudio.payment.payment.saga.repository.SagaRepository;
+import com.safostudio.payment.saga.domain.SagaInstance;
+import com.safostudio.payment.saga.domain.SagaStatus;
+import com.safostudio.payment.saga.domain.SagaStep;
+import com.safostudio.payment.saga.repository.SagaRepository;
 import com.safostudio.payment.payment.service.PaymentProcessor;
 import com.safostudio.payment.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SagaService {
+public class PaymentSagaService {
 
   public static final String AGGREGATE_TYPE = "PAYMENT";
   public static final String SAGA_TYPE_PAYMENT_SYNC = "PAYMENT_SYNC";

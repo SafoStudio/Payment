@@ -1,6 +1,6 @@
-package com.safostudio.payment.payment.saga.repository;
+package com.safostudio.payment.saga.repository;
 
-import com.safostudio.payment.payment.saga.domain.SagaInstance;
+import com.safostudio.payment.saga.domain.SagaInstance;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

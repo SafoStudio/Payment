@@ -1,4 +1,4 @@
-package com.safostudio.payment.payment.saga.domain;
+package com.safostudio.payment.saga.domain;
 
 /**
  * Steps of the PAYMENT_SYNC saga.
